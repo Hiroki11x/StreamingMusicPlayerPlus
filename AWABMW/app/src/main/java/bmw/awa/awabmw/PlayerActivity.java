@@ -26,6 +26,7 @@ public class PlayerActivity extends Activity{
     ImageButton playButton;
     SmartImageView jacketImage;
     TextView titleText;
+    CircularSeekBar seekBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,8 +51,17 @@ public class PlayerActivity extends Activity{
         jacketImage.setImageUrl(imageURI);
         jacketImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
-        titleText.findViewById(R.id.textView);
+        titleText = (TextView)findViewById(R.id.textView);
         titleText.setText(trackName);
+
+        seekBar = (CircularSeekBar)findViewById(R.id.seek_bar);
+        seekBar.setMaxProgress(100);
+        seekBar.setProgress(0);
+        seekBar.invalidate();
+        seekBar.setSeekBarChangeListener(new CircularSeekBar.OnSeekChangeListener() {
+            @Override
+            public void onProgressChange(CircularSeekBar view, int newProgress) {}
+        });
     }
 
     public void start(View v){//再生&停止ボタンが押された時の処理

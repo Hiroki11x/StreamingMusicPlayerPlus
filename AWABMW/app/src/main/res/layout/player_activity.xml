@@ -23,21 +23,8 @@ tools:context="bmw.awa.awabmw.DetailActivity">
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
-
-            <bmw.awa.awabmw.CircularSeekBar
-                android:layout_width="200dp"
-                android:layout_height="200dp"
-                android:id="@+id/seek_bar"
-                android:layout_gravity="center" />
-
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/imageButton"
-                android:layout_gravity="center"
-                android:background="@android:drawable/ic_media_play"
-                android:onClick="start" />
+            android:layout_weight="1"
+            android:background="@drawable/ring_back">
 
             <ImageButton
                 android:layout_width="wrap_content"
@@ -63,6 +50,57 @@ tools:context="bmw.awa.awabmw.DetailActivity">
                 android:layout_gravity="center_horizontal|top"
                 android:layout_marginTop="50dp"
                 android:gravity="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="New Text"
+                android:id="@+id/textView2"
+                android:layout_gravity="center_horizontal|top"
+                android:layout_marginTop="30dp"
+                android:gravity="center" />
+
+
+            <bmw.awa.awabmw.CircularSeekBar
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:id="@+id/seek_bar"
+                android:layout_gravity="center"
+                android:padding="50dp" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageButton"
+                android:layout_gravity="center"
+                android:background="@android:drawable/ic_media_play"
+                android:onClick="start" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageButton4"
+                android:layout_gravity="center_horizontal|bottom"
+                android:layout_marginBottom="25dp"
+                android:background="@android:drawable/ic_menu_rotate"
+                android:layout_marginLeft="20dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="New Text"
+                android:id="@+id/textView3"
+                android:layout_gravity="center_horizontal|bottom"
+                android:layout_marginBottom="55dp" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageButton5"
+                android:layout_gravity="center_horizontal|bottom"
+                android:layout_marginBottom="25dp"
+                android:layout_marginRight="20dp"
+                android:background="@android:drawable/ic_menu_set_as" />
         </FrameLayout>
     </LinearLayout>
 
@@ -70,7 +108,7 @@ tools:context="bmw.awa.awabmw.DetailActivity">
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:id="@+id/button"
-        android:background="@drawable/circle_button"
+        android:background="@drawable/circle_button_buttom"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_marginBottom="15dp"

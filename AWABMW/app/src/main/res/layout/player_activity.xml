@@ -6,14 +6,74 @@ android:layout_height="match_parent"
 tools:context="bmw.awa.awabmw.DetailActivity">
 
 
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="30dp"
+        android:id="@+id/linearLayout">
+
+        <com.loopj.android.image.SmartImageView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:id="@+id/imageView"
+            android:layout_weight="1"
+            android:scaleType="matrix" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <ProgressBar
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/progressBar"
+                android:layout_gravity="center" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageButton"
+                android:layout_gravity="center"
+                android:background="@android:drawable/ic_media_play"
+                android:onClick="start" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageButton2"
+                android:layout_gravity="left|center_vertical"
+                android:layout_marginLeft="70dp"
+                android:background="@android:drawable/ic_media_previous" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageButton3"
+                android:layout_gravity="center_vertical|right"
+                android:layout_marginRight="70dp"
+                android:background="@android:drawable/ic_media_next" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="New Text"
+                android:id="@+id/textView"
+                android:layout_gravity="center_horizontal|top"
+                android:layout_marginTop="50dp"
+                android:gravity="center" />
+        </FrameLayout>
+    </LinearLayout>
+
     <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="New Button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:id="@+id/button"
-        android:nestedScrollingEnabled="false"
-        android:onClick="start"
-        android:layout_marginBottom="76dp"
+        android:background="@drawable/circle_button"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignParentEnd="true"
+        android:layout_marginBottom="15dp"
+        android:layout_marginRight="15dp" />
 </RelativeLayout>

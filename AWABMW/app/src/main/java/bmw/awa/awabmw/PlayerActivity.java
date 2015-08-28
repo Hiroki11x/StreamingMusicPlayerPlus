@@ -7,6 +7,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.loopj.android.image.SmartImageView;
 
 import java.io.IOException;
 
@@ -18,6 +23,9 @@ public class PlayerActivity extends Activity{
 
     String previewUrl;
     MediaPlayer mp;
+    ImageButton playButton;
+    SmartImageView jacketImage;
+    TextView titleText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,21 +40,30 @@ public class PlayerActivity extends Activity{
         //intent元から、URIを取得
 
         if (!TextUtils.isEmpty(previewUrl)) {//URIが空でなければ
-            /*
-            VideoView videoView = (VideoView) findViewById(R.id.video_view);
-            videoView.setMediaController(new MediaController(this)); // 再生ボタンとかをつける
-            videoView.setVideoURI(Uri.parse(previewUrl)); // URLを設定する
-            videoView.start(); // 再生する
-            */
-            mediaplayerPrepare();
+            mediaplayerPrepare();//下にメソッドを定義している
         }
+
+        playButton = (ImageButton)findViewById(R.id.imageButton);//再生ボタン
+
+        String imageURI = getIntent().getExtras().getString("artworkUrl100");
+        jacketImage = (SmartImageView)findViewById(R.id.imageView);
+        jacketImage.setImageUrl(imageURI);
+        jacketImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+        titleText.findViewById(R.id.textView);
+        titleText.setText(trackName);
     }
 
     public void start(View v){//再生&停止ボタンが押された時の処理
         if(mp.isPlaying()){
+            //再生->停止の時
             mp.pause();
+            playButton.setBackground(getResources().getDrawable(android.R.drawable.ic_media_play));
         }else{
+            //停止->再生の時
             mp.start();
+            playButton.setBackground(getResources().getDrawable(android.R.drawable.ic_media_pause));
+            //背景を書き換えないとボタンまで透過できない
         }
     }
 
@@ -67,4 +84,9 @@ public class PlayerActivity extends Activity{
         }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mp.release();//MediaPlayerのリソース開放
+    }
 }

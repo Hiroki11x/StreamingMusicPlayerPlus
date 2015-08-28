@@ -197,7 +197,9 @@ public class MainActivity extends Activity {
             JSONObject result = mAdapter.getItem(position);//JSONObject取得
             intent.putExtra("track_name", result.optString("trackName"));//そのJSONObjectの名前をPlayerアクティビティに受け渡す
             intent.putExtra("preview_url", result.optString("previewUrl"));//そのJSONObjectURI(音楽を聴くためにもの)をPlayerアクティビティに受け渡す
-
+            intent.putExtra("artworkUrl100", result.optString("artworkUrl100"));//その画像のURL(音楽を聴くためにもの)をPlayerアクティビティに受け渡す
+            intent.putExtra("artistName", result.optString("artistName"));//その画像アーティスト名をPlayerアクティビティに受け渡す
+            intent.putExtra("collectionName", result.optString("collectionName"));//その画像アーティスト名をPlayerアクティビティに受け渡す
             startActivity(intent);//intent開始
         }
     }

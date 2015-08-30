@@ -26,7 +26,7 @@ public class Item extends Model {
     public String collectionName;
 
     @Column(name = "registerTime")
-    public int registerTime;
+    public long registerTime;
 
     public Item() {
         super();
@@ -37,7 +37,7 @@ public class Item extends Model {
                 String artworkUrl100,
                 String artistName,
                 String collectionName,
-                int registerTime) {
+                long registerTime) {
         super();
         this.track_name = track_name;
         this.previewUrl = previewUrl;

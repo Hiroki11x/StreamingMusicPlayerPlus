@@ -10,20 +10,19 @@ tools:context="bmw.awa.awabmw.DetailActivity">
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="30dp"
         android:id="@+id/linearLayout">
 
         <com.loopj.android.image.SmartImageView
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:id="@+id/imageView"
-            android:layout_weight="1"
+            android:layout_weight="9"
             android:scaleType="matrix" />
 
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_weight="7"
             android:background="@drawable/ring_back">
 
             <ImageButton
@@ -81,24 +80,25 @@ tools:context="bmw.awa.awabmw.DetailActivity">
                 android:layout_height="wrap_content"
                 android:id="@+id/imageButton4"
                 android:layout_gravity="center_horizontal|bottom"
-                android:layout_marginBottom="25dp"
+                android:layout_marginBottom="30dp"
                 android:background="@android:drawable/ic_menu_rotate"
-                android:layout_marginLeft="20dp" />
+                android:layout_marginLeft="20dp"
+                android:onClick="repeat" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Text"
+                android:text="00:00 / 00:00"
                 android:id="@+id/textView3"
                 android:layout_gravity="center_horizontal|bottom"
-                android:layout_marginBottom="55dp" />
+                android:layout_marginBottom="60dp" />
 
             <ImageButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/imageButton5"
                 android:layout_gravity="center_horizontal|bottom"
-                android:layout_marginBottom="25dp"
+                android:layout_marginBottom="30dp"
                 android:layout_marginRight="20dp"
                 android:background="@android:drawable/ic_menu_set_as" />
         </FrameLayout>

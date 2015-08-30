@@ -1,8 +1,4 @@
-/**
- * @author Raghav Sood
- * @version 1
- * @date 26 January, 2013
- */
+
 package bmw.awa.awabmw;
 
 import android.content.Context;
@@ -13,7 +9,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -275,7 +270,7 @@ public class CircularSeekBar extends View {
 			float temp = (float)(angle-90)/180.0f*(float)Math.PI;
 			dx = cx+(float)((innerRadius+outerRadius)/2 * Math.cos(temp))-progressMarkPressed.getWidth()/2;
 			dy = cy+(float)((innerRadius+outerRadius)/2 * Math.sin(temp))-progressMarkPressed.getHeight()/2;
-			Log.d("aaa", "" + getYFromAngle());
+			////Log.d("aaa", "" + getYFromAngle());
 			drawMarkerAtProgress(canvas);
 		}
 		super.onDraw(canvas);
@@ -549,7 +544,7 @@ public class CircularSeekBar extends View {
 			markPointX = (float) (cx + outerRadius * Math.cos(Math.atan2(x - cx, cy - y) - (Math.PI /2)));
 			markPointY = (float) (cy + outerRadius * Math.sin(Math.atan2(x - cx, cy - y) - (Math.PI / 2)));
 
-			Log.d("**************",""+markPointX+"/"+"markPointY");
+			//Log.d("**************",""+markPointX+"/"+"markPointY");
 
 			float degrees = (float) ((float) ((Math.toDegrees(Math.atan2(x - cx, cy - y)) + 360.0)) % 360.0);
 			// and to make it count 0-360

@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -65,7 +66,7 @@ public class PlayerActivity extends Activity{
 
     Timer timer;
     Handler handler;
-    TextView currentTimeText;//現在の再生位置を表示
+    TextView LeftSideText,RightSideText;//現在の再生位置を表示
     String maxLength,nowLength;//曲の現在時間を出すところ(全体時間と現在時間)
 
     @Override
@@ -73,19 +74,31 @@ public class PlayerActivity extends Activity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.player_activity);
 
-        handler = new Handler();
-
-        //Serviceをバインドする
-        Intent intent = new Intent(PlayerActivity.this,MusicService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);//エラー出た(ServiceConnectionLeaked)
-
-        subOnCreate();
+        subOnCreate(false);
         //centerButtonClicked();//音楽の再生が行われるのでseekbarとかにも対応させる
     }
 
-    public void subOnCreate(){
+    public void subOnCreate(boolean random){
 
-        Item item = new Select().from(Item.class).orderBy("id DESC").executeSingle();
+        handler = new Handler();
+
+
+        Item item = null;
+        if(random){
+            item = new Select().from(Item.class).orderBy("RANDOM()").executeSingle();
+            SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = data.edit();
+            editor.putLong("key",item.getId());
+            Log.d("\"key\",item.getId()", ""+item.getId());
+            editor.apply();
+        }else{
+            //Serviceをバインドする
+            Intent intent = new Intent(PlayerActivity.this,MusicService.class);
+            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);//エラー出た(ServiceConnectionLeaked)
+
+            item = new Select().from(Item.class).orderBy("id DESC").executeSingle();
+        }
+
         String trackName = item.track_name;
         String imageURI = item.artworkUrl100;
         String artistName =item.artistName;
@@ -99,7 +112,9 @@ public class PlayerActivity extends Activity{
         titleText.setText(trackName);//トラック名をセット
         artistText = (TextView) findViewById(R.id.textView);
         artistText.setText(artistName);//アーティスト名をセット
-        currentTimeText = (TextView) findViewById(R.id.textView3);
+        LeftSideText = (TextView)findViewById(R.id.textlefttime);
+        RightSideText = (TextView)findViewById(R.id.textrighttime);
+
     }
 
     public void start(View v) {//再生&停止ボタンが押された時の処理
@@ -114,7 +129,6 @@ public class PlayerActivity extends Activity{
                     playButton.setBackground(getResources().getDrawable(android.R.drawable.ic_media_pause));
                 }else{
                     playButton.setBackground(getResources().getDrawable(android.R.drawable.ic_media_play));
-
                 }
                 if (timer == null) { // timerの多重起動を防ぐ
                     timer = new Timer();
@@ -126,7 +140,8 @@ public class PlayerActivity extends Activity{
                                 handler.post(new Runnable() {// UIを操作するため、Handlerが必要
                                     @Override
                                     public void run() {
-                                        currentTimeText.setText(nowLength + " / " + maxLength); // 現在の再生位置をセット
+                                        RightSideText.setText(maxLength); // 現在の再生位置をセット
+                                        LeftSideText.setText(nowLength);
                                         seekBar.invalidate();//これを加えることでプログレスバー線の色が変わってきた
                                         try{
                                             seekBar.setProgress(mBindService.getMediaPlayer().getCurrentPosition()); // SeekBarにも現在位置をセット
@@ -149,6 +164,10 @@ public class PlayerActivity extends Activity{
         }
     }
 
+
+    /*リピートボタンを実装する際はこのコメントアウトを外す
+
+
     public void repeat(View v) {
         if (mBindService != null) {
             try{
@@ -158,6 +177,7 @@ public class PlayerActivity extends Activity{
             }
         }
     }
+    */
 
     public void seekBarPrepare() {//seekBarの再生準備 afterbinding
         seekBar = (CircularSeekBar) findViewById(R.id.seek_bar);
@@ -165,6 +185,7 @@ public class PlayerActivity extends Activity{
 //        seekBar.setMaxProgress(mp.getDuration());
         try{
             seekBar.setMaxProgress(mBindService.getMediaPlayer().getDuration());
+            maxLength = mBindService.calcDuration(true);//maxlengthに全体時間を表示
         }catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -172,7 +193,7 @@ public class PlayerActivity extends Activity{
         seekBar.setSeekBarChangeListener(new CircularSeekBar.OnSeekChangeListener() {
             @Override
             public void onProgressChange(CircularSeekBar view, int newProgress) {
-                Log.d("Welcome", "Progress:" + view.getProgress() + "/" + view.getMaxProgress());
+                Log.d("Welcome", "Progress:" + view.getProgress() + "|" + view.getMaxProgress());
             }
         });
         seekBar.setOnTouchListener(new View.OnTouchListener() {
@@ -182,13 +203,15 @@ public class PlayerActivity extends Activity{
                 if(mBindService!=null) {
                     try{
                         if (event.getAction() == MotionEvent.ACTION_UP) {
-                            currentTimeText.setText(nowLength + " / " + maxLength); // 現在の再生位置をセット
+                            RightSideText.setText(maxLength); // 現在の再生位置をセット
+                            LeftSideText.setText(nowLength);
                             int progress = seekBar.getProgress();
                             mBindService.getMediaPlayer().seekTo(progress);
                             mBindService.getMediaPlayer().start();
                             Log.d("Call ACTION_UP", "");
                         } else if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                            currentTimeText.setText("loading...");
+                            RightSideText.setText(maxLength); // 現在の再生位置をセット
+                            LeftSideText.setText("...");
                             mBindService.getMediaPlayer().pause();
                         }
                     }catch (RemoteException e){
@@ -212,14 +235,7 @@ public class PlayerActivity extends Activity{
          * が終わって初めてService側の値とかをmBindService経由で取得できる
          *
          */
-
         seekBarPrepare();//playerのDurationアクセスとかするのでafterbindingで
-        try{
-            maxLength = mBindService.calcDuration(true);//maxlengthに全体時間を表示
-        }catch (RemoteException e){
-            e.printStackTrace();
-        }
-
     }
 
     @Override
@@ -247,4 +263,28 @@ public class PlayerActivity extends Activity{
             }
         }
     }
+
+    public void nextTrack(View v){
+        if(mBindService!=null) {
+            try{
+
+                if(timer!=null){//これがないと再生せずに戻った時エラーでる
+                    timer.cancel();
+                    timer = null;
+                }
+
+                subOnCreate(true);//ランダムに次の曲へ
+                mBindService.nextTrackService();//Service#subOnCreateService(true)
+                afterBinding();
+                centerButtonClicked();
+
+
+            }catch (RemoteException e){
+                e.printStackTrace();
+            }
+        }
+    }
+
 }
+
+

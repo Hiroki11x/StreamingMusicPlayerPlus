@@ -39,7 +39,7 @@ public class CircularSeekBar extends View {
 	private int startAngle = 270;
 
 	/** The width of the progress ring */
-	private int barWidth = 5;
+	private int barWidth = 20;
 
 	/** The width of the view */
 	private int width;
@@ -144,23 +144,28 @@ public class CircularSeekBar extends View {
 		innerColor = new Paint();
 		circleRing = new Paint();
 
-		circleColor.setColor(Color.parseColor("#ff33b5e5")); // Set default
+		circleColor.setColor(Color.parseColor("#ff7043")); // Set default
 		// progress
 		// color to holo
 		// blue.
-		innerColor.setColor(Color.WHITE); // Set default background color to
+
+		innerColor.setColor(Color.parseColor("#ffffff")); // Set default background color to
 		// black
-		circleRing.setColor(Color.GRAY);// Set default background color to Gray
+
+		circleRing.setColor(Color.parseColor("#cfd8dc"));// Set default background color to Gray
 
 		circleColor.setAntiAlias(true);
 		innerColor.setAntiAlias(true);
 		circleRing.setAntiAlias(true);
 
+
+		//ここ変えてもあんま変わらん
 		circleColor.setStrokeWidth(5);
 		innerColor.setStrokeWidth(5);
 		circleRing.setStrokeWidth(5);
 
 		circleColor.setStyle(Paint.Style.FILL);
+
 	}
 
 	/**
@@ -209,9 +214,9 @@ public class CircularSeekBar extends View {
 	 * Inits the drawable.
 	 */
 	public void initDrawable() {
-		progressMark = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.scrubber_control_normal_holo);
+		progressMark = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.thumb_shadow);
 		progressMarkPressed = BitmapFactory.decodeResource(mContext.getResources(),
-				R.drawable.scrubber_control_pressed_holo);
+				R.drawable.thumb_shadow);
 	}
 
 	/*

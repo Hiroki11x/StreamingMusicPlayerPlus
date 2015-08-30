@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -25,8 +26,36 @@ import java.util.Locale;
 
 /**
  * Created by hirokinaganuma on 15/08/29.
- * <p/>
+ *
  * ServiceConnectionによって取得するIBinderを介することで、Serviceへの制御を行うことが可能です。
+ *
+ * Activiyスタート時の挙動
+ *
+ * 1. Activity#onCreateでsubOnCreate(false)が呼ばれる
+ * 2. Activity#subOnCreate()でbind(),DBからデータ取得,UIの関連付けを行う
+ *
+ * 3. Service#onCreateでsubOnCreateService(false)が呼ばれる
+ * 4. Service#subOnCreateServiceでMediaPlayerの初期化、getIntentContents(),mediaplayerPrepare(),を行っている
+ * 5. Service#getIntentContents()でDBからのデータ取得
+ * 6. Service#mediaplayerPrepare()でMediaPlayerの準備,データのセットとか
+ * 7. Service#onBind()特に何もしてない
+ *
+ * 8. Activity#onServiceConnected() ActivityからService制御するための変数ゲット、afterBinding()、centerButtonClicked()を実行
+ * 9. Activity#afterBinding() seekBarPrepare(),
+ *10. Activity#seekBarPrepare() Service#calcDuration実行 SeekBarの初期設定、リスナ設定、Service#mpからdurationを取得
+ *11. Activity#centerButtonClicked() Service#startOrStop() ボタンの画像切り替え timer開始 progressBarが動き始める、時間も更新
+ *
+ *12. Service#startOrStop() MediaPlayer再生停止を行う generateNotification()
+ *13. Service#generateNotification() で通知を出す
+ *
+ * Activity#nextTrackスタート時の挙動
+ * すでにbindしているのでbinっする必要なし
+ *
+ * 1. Activity#subOnCreate(true)
+ * 2. Service#subOnCreateService(true)//どちらもランダムで呼ぶと楽曲と再生画面が一致しなくなのでidをSharedPreferenceで管理
+ *
+ * 3. Activity#afterBinding()、
+ * 4. Activity#centerButtonClicked()
  */
 
 public class MusicService extends Service {
@@ -67,7 +96,10 @@ public class MusicService extends Service {
         PrepareTask task = new PrepareTask();
         task.execute();
         */
+        subOnCreateService(false);//falseとする時ランダムでなく最新のものを取得
+    }
 
+    public void subOnCreateService(boolean random){
         if (mp != null) {
             if (mp.isPlaying()) {
                 mp.stop();
@@ -75,17 +107,16 @@ public class MusicService extends Service {
             mp.release();
             mp = null;
         }
-
         try {
-            getIntentContents();
+            getIntentContents(random);//falseとする時ランダムでなく最新のものを取得
             if (!TextUtils.isEmpty(previewUrl_S)) {
                 mediaplayerPrepare(previewUrl_S);//エラー出た
-
             }
         } catch (RemoteException e) {
             e.printStackTrace();
         }
     }
+
 
 
     //2  Service接続時に呼ばれる。ServiceとActivityを仲介するIBinderを返却する。
@@ -146,6 +177,7 @@ public class MusicService extends Service {
         //onUnbindをreturn trueでoverrideすると次回バインド時にonRebildが呼ばれる
 //        mp.pause();
 //        mp.release();
+        stopForeground(true);//通知の削除
         return true;
     }
 
@@ -202,7 +234,8 @@ public class MusicService extends Service {
         return temp;
     }
 
-    public void startOrStop() throws RemoteException {
+    //再生または停止を行う
+    public void startOrStop() throws RemoteException {//Activity#centerButtonClickedから呼ばれる
         //再生ボタンの設定
         if (mp.isPlaying()) {//再生->停止の時
             mp.pause();
@@ -213,6 +246,13 @@ public class MusicService extends Service {
 //            startForeground(1, generateNotification());
         }
     }
+
+    public void nextTrackService() throws RemoteException{
+        subOnCreateService(true);//trueとする時ランダムに取得SharedPreferenceから取得
+    }
+
+
+
 
     public void setLoopStateService() throws RemoteException {
         loopState = (loopState + 1) % 2;
@@ -226,10 +266,22 @@ public class MusicService extends Service {
         }
     }
 
-    public void getIntentContents() throws RemoteException {
+    public void getIntentContents(boolean random) throws RemoteException {
 
         //DataBaseからそれぞれの値を取得してくる
-        Item item = new Select().from(Item.class).orderBy("id DESC").executeSingle();
+        Item item = null;
+        if(random){
+
+            SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
+            long keyId = data.getLong("key",1 );
+
+            item = new Select().from(Item.class).where("Id = ?", keyId).executeSingle();
+
+
+        }else{
+            item = new Select().from(Item.class).orderBy("id DESC").executeSingle();
+        }
+
         trackName_S = item.track_name;
         previewUrl_S = item.previewUrl;
         imageURI_S = item.artworkUrl100;

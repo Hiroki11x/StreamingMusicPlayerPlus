@@ -203,15 +203,29 @@ public class MainActivity extends Activity {
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
 
-            JSONObject result = mAdapter.getItem(position);//JSONObject取得
 
+
+            for(int i =0;i<3;i++){
+                JSONObject tempResult = mAdapter.getItem(i);//JSONObject取得
+                Item tempItem = new Item();
+                tempItem.track_name=tempResult.optString("trackName");
+                tempItem.previewUrl=tempResult.optString("previewUrl");
+                tempItem.artworkUrl100=tempResult.optString("artworkUrl100");
+                tempItem.artistName=tempResult.optString("artistName");
+                tempItem.collectionName=tempResult.optString("collectionName");
+                tempItem.registerTime=System.currentTimeMillis();
+                tempItem.save();
+            }
+
+            //選択したアイテムのオブジェクトをDBに登録
+            JSONObject result = mAdapter.getItem(position);//JSONObject取得
             Item item = new Item();
             item.track_name=result.optString("trackName");
             item.previewUrl=result.optString("previewUrl");
             item.artworkUrl100=result.optString("artworkUrl100");
             item.artistName=result.optString("artistName");
             item.collectionName=result.optString("collectionName");
-            item.registerTime=(int)System.currentTimeMillis();
+            item.registerTime=System.currentTimeMillis();
             item.save();
 
             Intent intent = new Intent(MainActivity.this, PlayerActivity.class);//PlayerActivityに明示的intent

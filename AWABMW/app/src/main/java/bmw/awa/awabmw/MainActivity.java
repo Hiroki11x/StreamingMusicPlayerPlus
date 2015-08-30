@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -38,6 +39,7 @@ public class MainActivity extends Activity {
 //起動時のメイン画面
 
     private ListAdapter mAdapter;
+    Button btnJump;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +55,14 @@ public class MainActivity extends Activity {
 
         final EditText editText = (EditText) findViewById(R.id.edit_text);//曲の検索画面
         editText.setOnKeyListener(new OnKeyListener());//文字入力のEditTextにリスナ追加
+
+        btnJump = (Button) findViewById(R.id.btn_jump);
+        btnJump.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getApplicationContext(), RecommendationActivity.class));
+            }
+        });
     }
 
     private class ListAdapter extends ArrayAdapter<JSONObject> {//ListAdapterクラスを内部クラスとして定義
@@ -84,7 +94,7 @@ public class MainActivity extends Activity {
             imageView.setImageUrl(result.optString("artworkUrl100"));
             trackTextView.setText(result.optString("trackName"));
             artistTextView.setText(result.optString("artistName"));
-            Log.d("","call_getView"+System.currentTimeMillis());//getViewが呼ばれていたのか確認
+            Log.d("", "call_getView" + System.currentTimeMillis());//getViewが呼ばれていたのか確認
             return convertView;//ListViewの1要素のViewを返す
         }
     }
@@ -162,7 +172,7 @@ public class MainActivity extends Activity {
                         }
 
                         @Override
-                        protected void onPostExecute(JSONObject jsonObject){//doInBackground後の処理
+                        protected void onPostExecute(JSONObject jsonObject) {//doInBackground後の処理
                             Log.d("", jsonObject.toString());
 
                             mAdapter.clear();//ListVierに突っ込むAdapterを一度クリア
@@ -178,7 +188,7 @@ public class MainActivity extends Activity {
                                     //debugしたところ、mAdapter.add呼ばれたのちにgetViewが呼ばれている模様
                                 }
                             }
-                            Log.d("","end mAdapter.add()"+System.currentTimeMillis());
+                            Log.d("", "end mAdapter.add()" + System.currentTimeMillis());
                         }
                     }.execute(urlString);//AsyncTaskを実行
                 }

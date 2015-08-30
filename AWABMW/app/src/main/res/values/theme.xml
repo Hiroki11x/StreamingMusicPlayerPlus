@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="MyTheme" parent="Theme.AppCompat">
+        <!-- ToolBarの背景色 -->
+        <item name="colorPrimary">@color/red_bright</item>
+        <item name="colorPrimaryDark">@color/red_dark</item>
+        <!-- ToolBarのタイトルテキスト色 -->
+        <item name="android:textColorPrimary">#ffffff</item>
+        <!-- ToolBarのオプションメニューのOverflowアイコンの色 -->
+        <item name="android:textColorSecondary">#eeeeee</item>
+        <item name="windowActionModeOverlay">true</item>
+        <item name="android:windowBackground">@null</item>
+
+        <item name="android:actionBarStyle">@style/MyTheme.ActionBar</item>
+    </style>
+
+    <style name="MyTheme.ActionBar" parent="Widget.AppCompat.ActionBar">
+        <item name="elevation">0dp</item>
+    </style>
+
+
+</resources>

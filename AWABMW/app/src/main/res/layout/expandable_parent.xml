@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="48dp">
+
+    <TextView
+        android:id="@+id/parent_title"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:text="aaa" />
+
+    <ImageView
+        android:id="@+id/parent_indicator"
+        android:layout_width="60dp"
+        android:layout_height="48dp"
+        android:paddingBottom="4dp"
+        android:paddingEnd="16dp"
+        android:paddingStart="4dp"
+        android:paddingTop="4dp"
+        android:scaleType="fitXY"
+        android:src="@mipmap/ic_launcher" />
+
+</LinearLayout>

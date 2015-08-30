@@ -22,6 +22,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -57,7 +58,6 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
     LinearLayoutManager mLayoutManager;
     DrawerAdapter mAdapter;
     boolean isDrawerOpened;
-
 
     String[] factor = new String[]{"album", "artist", "tempo", "tempo2", "tempo3"};
     int[] iconId = {R.drawable.album, R.drawable.artist, R.drawable.tempo, R.drawable.tempo, R.drawable.tempo};
@@ -109,8 +109,8 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
             @Override
             public void onDrawerStateChanged(int newState) {
 //                super.onDrawerStateChanged(newState);
-                if(newState == DrawerLayout.STATE_IDLE) {
-                    if(isDrawerOpened) menuIcon.setState(MaterialMenuDrawable.IconState.ARROW);
+                if (newState == DrawerLayout.STATE_IDLE) {
+                    if (isDrawerOpened) menuIcon.setState(MaterialMenuDrawable.IconState.ARROW);
                     else menuIcon.setState(MaterialMenuDrawable.IconState.BURGER);
                 }
             }
@@ -352,6 +352,9 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
 
     public static class TestFragment extends Fragment {
 
+        ExpandableListView listExpandable;
+        ArrayList<Element> elements;
+
         public TestFragment() {
         }
 
@@ -368,7 +371,29 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             int page = getArguments().getInt("page", 0);
             View view = inflater.inflate(R.layout.fragment_test, container, false);
-            ((TextView) view.findViewById(R.id.page_text)).setText("Page " + page);
+//            ((TextView) view.findViewById(R.id.page_text)).setText("Page " + page);
+            listExpandable = (ExpandableListView) view.findViewById(R.id.list_expandable);
+
+            /**
+             * ExpandableListView
+             */
+            elements = new ArrayList<>();
+
+            elements.add(new Element("page" + page + ": 1st element"));
+            elements.add(new Element("page" + page + ": 2nd element"));
+            elements.add(new Element("page" + page + ": 3rd element"));
+
+            for(int i = 4;i < 10; i++){
+                Element x = (new Element("page" + page + ": " + i + "th element"));
+                x.addChild(new Element("page" + page + ": " + i + "th child"));
+                elements.add(x);
+            }
+
+            listExpandable.setGroupIndicator(getResources().getDrawable(android.R.color.transparent));
+            MyExpandListAdapter expandListAdapter = new MyExpandListAdapter(getActivity(), elements);
+
+            listExpandable.setAdapter(expandListAdapter);
+
             return view;
         }
     }

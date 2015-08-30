@@ -44,6 +44,7 @@ public class PlayerActivity extends Activity{
             // service引数には、Onbind()で返却したBinderが渡される
             mBindService = ((MusicService.LocalBinder)service).getService();
             afterBinding();
+            centerButtonClicked();//この段階で再生開始
             //必要であればmBoundServiceを使ってバインドしたServiceへの制御を行う
         }
 
@@ -72,33 +73,19 @@ public class PlayerActivity extends Activity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.player_activity);
 
-
         handler = new Handler();
-
-        //intent元から各種情報を取得
-        /*
-        String trackName = getIntent().getExtras().getString("track_name");
-        String previewUrl = getIntent().getExtras().getString("preview_url");
-        String imageURI = getIntent().getExtras().getString("artworkUrl100");
-        String artistName = getIntent().getExtras().getString("artistName");
-        String albumName = getIntent().getExtras().getString("collectionName");
-        */
 
         //Serviceをバインドする
         Intent intent = new Intent(PlayerActivity.this,MusicService.class);
-        /*
-        intent.putExtra("track_name", trackName);//そのJSONObjectの名前をPlayerアクティビティに受け渡す
-        intent.putExtra("preview_url", previewUrl);//そのJSONObjectURI(音楽を聴くためにもの)をPlayerアクティビティに受け渡す
-        intent.putExtra("artworkUrl100", imageURI);//その画像のURL(音楽を聴くためにもの)をPlayerアクティビティに受け渡す
-        intent.putExtra("artistName", artistName);//その画像アーティスト名をPlayerアクティビティに受け渡す
-        intent.putExtra("collectionName", albumName);//その画像アーティスト名をPlayerアクティビティに受け渡す
-        intent.setAction("play");
-        */
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);//エラー出た
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);//エラー出た(ServiceConnectionLeaked)
 
+        subOnCreate();
+        //centerButtonClicked();//音楽の再生が行われるのでseekbarとかにも対応させる
+    }
+
+    public void subOnCreate(){
 
         Item item = new Select().from(Item.class).orderBy("id DESC").executeSingle();
-
         String trackName = item.track_name;
         String imageURI = item.artworkUrl100;
         String artistName =item.artistName;
@@ -113,7 +100,6 @@ public class PlayerActivity extends Activity{
         artistText = (TextView) findViewById(R.id.textView);
         artistText.setText(artistName);//アーティスト名をセット
         currentTimeText = (TextView) findViewById(R.id.textView3);
-        //centerButtonClicked();//音楽の再生が行われるのでseekbarとかにも対応させる
     }
 
     public void start(View v) {//再生&停止ボタンが押された時の処理
@@ -123,7 +109,7 @@ public class PlayerActivity extends Activity{
     public void centerButtonClicked(){
         if(mBindService!=null){
             try{
-                mBindService.startOrStop();
+                mBindService.startOrStop();//再生もしくは停止
                 if(mBindService.getMediaPlayer().isPlaying()){
                     playButton.setBackground(getResources().getDrawable(android.R.drawable.ic_media_pause));
                 }else{
@@ -215,8 +201,19 @@ public class PlayerActivity extends Activity{
 
     }
 
-    public void afterBinding(){
-        seekBarPrepare();
+    public void afterBinding(){//
+        /**Serviceと連携する場合呼び出しの順序が
+         * 0.Activity#onCreate
+         * 1.Service#onCreate が初回作成時に呼ばれる
+         * 2.Service#onBind Service接続時に呼ばれる。ServiceとActivityを仲介するIBinderを返却する。
+         * 3.Activity#onServiceConnected Service接続後、Binderが確立したタイミングで呼び出される。
+         *
+         * この3のタイミングでafterBinding読んでいる
+         * が終わって初めてService側の値とかをmBindService経由で取得できる
+         *
+         */
+
+        seekBarPrepare();//playerのDurationアクセスとかするのでafterbindingで
         try{
             maxLength = mBindService.calcDuration(true);//maxlengthに全体時間を表示
         }catch (RemoteException e){
@@ -242,6 +239,8 @@ public class PlayerActivity extends Activity{
                 if(mBindService.getMediaPlayer().isPlaying()==false){
                     mBindService.getMediaPlayer().stop();
                     mBindService.getMediaPlayer().release();
+                }else{
+
                 }
             }catch (RemoteException e){
                 e.printStackTrace();

@@ -203,20 +203,6 @@ public class MainActivity extends Activity {
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
 
-
-
-            /*
-            intent.putExtra("track_name", result.optString("trackName"));//そのJSONObjectの名前をPlayerアクティビティに受け渡す
-            intent.putExtra("preview_url", result.optString("previewUrl"));//そのJSONObjectURI(音楽を聴くためにもの)をPlayerアクティビティに受け渡す
-            intent.putExtra("artworkUrl100", result.optString("artworkUrl100"));//その画像のURLをPlayerアクティビティに受け渡す
-            intent.putExtra("artistName", result.optString("artistName"));//その画像アーティスト名をPlayerアクティビティに受け渡す
-            intent.putExtra("collectionName", result.optString("collectionName"));//その画像アーティスト名をPlayerアクティビティに受け渡す
-            */
-
-//            Item _item = new Select().from(Item.class).orderBy("id DESC").executeSingle();
-//            if(_item!=null){
-//                _item.delete();
-//            }
             JSONObject result = mAdapter.getItem(position);//JSONObject取得
 
             Item item = new Item();
@@ -227,11 +213,6 @@ public class MainActivity extends Activity {
             item.collectionName=result.optString("collectionName");
             item.registerTime=(int)System.currentTimeMillis();
             item.save();
-            Log.d("***************", "***************************************");
-            Log.d("***************", "***************************************");
-            Log.d("item_saved","item.track_name: "+item.previewUrl);
-            Log.d("***************","***************************************");
-            Log.d("***************","***************************************");
 
             Intent intent = new Intent(MainActivity.this, PlayerActivity.class);//PlayerActivityに明示的intent
             startActivity(intent);//intent開始

@@ -3,9 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center_vertical"
-    android:orientation="horizontal" >
+    android:orientation="horizontal"
+    android:background="#ff7043">
 
-    <com.loopj.android.image.SmartImageView
+    <ImageView
         android:id="@+id/imageicon"
         android:layout_width="64dip"
         android:layout_height="64dip"

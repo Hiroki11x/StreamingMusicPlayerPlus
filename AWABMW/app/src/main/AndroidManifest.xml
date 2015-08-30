@@ -18,7 +18,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".PlayerActivity"/>
+        <activity android:name=".PlayerActivity" />
+        <activity
+            android:name=".RecommendationActivity"
+            android:theme="@style/MyTheme"
+            android:label="@string/title_activity_recommendation" >
+        </activity>
     </application>
 
 </manifest>

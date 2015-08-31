@@ -3,12 +3,24 @@
     android:layout_width="match_parent"
     android:layout_height="48dp">
 
+    <com.loopj.android.image.SmartImageView
+        android:id="@+id/child_jacket"
+        android:layout_width="60dp"
+        android:layout_height="48dp"
+        android:paddingBottom="4dp"
+        android:paddingEnd="4dp"
+        android:paddingStart="16dp"
+        android:paddingTop="4dp"
+        android:src="@mipmap/ic_launcher" />
+
+
     <TextView
         android:id="@+id/child_title"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:gravity="center"
-        android:paddingStart="16dp"
+        android:gravity="center_vertical"
+        android:paddingStart="4dp"
+        android:paddingEnd="16dp"
         android:text="aaa" />
 
 </LinearLayout>

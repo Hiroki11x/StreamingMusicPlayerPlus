@@ -1,5 +1,6 @@
 package bmw.awa.awabmw;
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Color;
@@ -25,6 +26,7 @@ import android.view.ViewGroup;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.balysv.materialmenu.MaterialMenuDrawable;
 import com.balysv.materialmenu.extras.toolbar.MaterialMenuIconToolbar;
@@ -32,6 +34,7 @@ import com.loopj.android.image.SmartImageView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -39,29 +42,25 @@ import butterknife.ButterKnife;
 
 public class RecommendationActivity extends AppCompatActivity implements ViewPager.OnPageChangeListener {
 
-    @Bind(R.id.tabs)
-    TabLayout mTabLayout;
-    @Bind(R.id.txt_title)
-    TextView txtTitle;
-    @Bind(R.id.img_jacket)
-    SmartImageView imgJacket;
-    @Bind(R.id.view_pager)
-    ViewPager viewPager;
-    @Bind(R.id.toolbar)
-    Toolbar toolbar;
+    @Bind(R.id.tabs) TabLayout mTabLayout;
+    @Bind(R.id.txt_title) TextView txtTitle;
+    @Bind(R.id.img_jacket) SmartImageView imgJacket;
+    @Bind(R.id.view_pager) ViewPager viewPager;
+    @Bind(R.id.toolbar) Toolbar toolbar;
 
-    SearchView mSearchView;
-    MaterialMenuIconToolbar menuIcon;
-    DrawerLayout mDrawerLayout;
-    ActionBarDrawerToggle mDrawerToggle;
-    RecyclerView mRecyclerView;
-    LinearLayoutManager mLayoutManager;
-    DrawerAdapter mAdapter;
-    boolean isDrawerOpened;
+    private SearchView mSearchView;
+    private MaterialMenuIconToolbar menuIcon;
+    private DrawerLayout mDrawerLayout;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private RecyclerView mRecyclerView;
+    private LinearLayoutManager mLayoutManager;
+    private DrawerAdapter mAdapter;
+    private boolean isDrawerOpened;
 
-    String[] factor = new String[]{"album", "artist", "tempo", "tempo2", "tempo3"};
-    int[] iconId = {R.drawable.album, R.drawable.artist, R.drawable.tempo, R.drawable.tempo, R.drawable.tempo};
+    private String[] factor = new String[]{"album", "artist", "tempo", "tempo2", "tempo3"};
+    private int[] iconId = {R.drawable.album, R.drawable.artist, R.drawable.tempo, R.drawable.tempo, R.drawable.tempo};
 
+    //unimplement
     String playingArtist, playingTrack;
 
     @Override
@@ -71,19 +70,49 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
 
         ButterKnife.bind(this);
 
+        /**
+         * Toolbar
+         */
         toolbar.inflateMenu(R.menu.menu_recommendation);
         toolbar.setTitle("");
 
         setSupportActionBar(toolbar);
 
-        /**
-         * aaaaaaaa
-         */
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                menuIcon.animateState(MaterialMenuDrawable.IconState.ARROW);
+            }
+        });
 
+        /**
+         * searchView
+         */
+        mSearchView = (SearchView) toolbar.getMenu().findItem(R.id.menu_search).getActionView();
+        mSearchView.setIconified(false);
+        mSearchView.setIconifiedByDefault(false);
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                return false;
+            }
+        });
+
+        /**
+         * DrawerLayout
+         */
         // ドロワーの開け閉めをActionBarDrawerToggleで監視
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.app_name, R.string.app_name);
         mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        // ドロワー開くボタン(三本線)を表示
+        mDrawerToggle.setDrawerIndicatorEnabled(true);
 
         mDrawerLayout.setDrawerListener(new DrawerLayout.SimpleDrawerListener() {
             @Override
@@ -116,9 +145,9 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
             }
         });
 
-        // ドロワー開くボタン(三本線)を表示
-        mDrawerToggle.setDrawerIndicatorEnabled(true);
-
+        /**
+         * RecyclerView
+         */
         mRecyclerView = (RecyclerView) findViewById(R.id.drawer_view);
 
         // RecyclerView内のItemサイズが固定の場合に設定すると、パフォーマンス最適化
@@ -155,21 +184,9 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
         }
 
         // XMLを読込んで表示する
-//        String[] drawerMenuArr = getResources().getStringArray(R.array.drawer_list_arr);
         mAdapter = new DrawerAdapter(drawerMenuArr);
 
         mRecyclerView.setAdapter(mAdapter);
-
-        /**
-         * aaaaaaaaa
-         */
-
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                menuIcon.animateState(MaterialMenuDrawable.IconState.ARROW);
-            }
-        });
 
         menuIcon = new MaterialMenuIconToolbar(this, Color.WHITE, MaterialMenuDrawable.Stroke.THIN) {
             @Override
@@ -177,27 +194,6 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
                 return R.id.toolbar;
             }
         };
-
-        mSearchView = (SearchView) toolbar.getMenu().findItem(R.id.menu_search).getActionView();
-        mSearchView.setIconified(false);
-        mSearchView.setIconifiedByDefault(false);
-        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String s) {
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String s) {
-                return false;
-            }
-        });
-
-//        get Intent and parse Extras-----
-//        Intent mIntent = getIntent();
-//        playingArtist = mIntent.getStringExtra("artist");
-//        playingTrack = mIntent.getStringExtra("track");
-
 
         imgJacket.setImageDrawable(getResources().getDrawable(R.drawable.jacket));
         imgJacket.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
@@ -208,7 +204,6 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
         mTabLayout.addTab(mTabLayout.newTab());
         mTabLayout.addTab(mTabLayout.newTab());
         mTabLayout.addTab(mTabLayout.newTab());
-//        mTabLayout.addTab(mTabLayout.newTab());
 
         mTabLayout.setOnTabSelectedListener(
                 new TabLayout.OnTabSelectedListener() {
@@ -226,14 +221,6 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
                                 tab.setIcon(getResources().getDrawable(iconId[lp]));
                             }
                         }
-//                        Object tag = tab.getTag();
-//                        if (tag.equals("artist")) {
-//                            tab.setIcon(R.drawable.artist);
-//                        } else if (tag.equals("album")) {
-//                            tab.setIcon(R.drawable.album);
-//                        } else if (tag.equals("tempo")) {
-//                            tab.setIcon(R.drawable.tempo);
-//                        }
                     }
 
                     @Override
@@ -379,18 +366,50 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
              */
             elements = new ArrayList<>();
 
-            elements.add(new Element("page" + page + ": 1st element"));
-            elements.add(new Element("page" + page + ": 2nd element"));
-            elements.add(new Element("page" + page + ": 3rd element"));
+            try {
 
-            for(int i = 4;i < 10; i++){
-                Element x = (new Element("page" + page + ": " + i + "th element"));
-                x.addChild(new Element("page" + page + ": " + i + "th child"));
-                elements.add(x);
+                if (page == 2) {
+                    Item ii = Item.getRandom();
+                    List<Item> list = Item.getByAlbum(ii.collectionName, ii.artistName);
+                    Element tmp = new Element(Item.getByAlbum(ii.collectionName, ii.artistName).get(0));
+
+                    for (Item i : list) {
+                        tmp.addChild(new Element(i));
+                    }
+
+                    elements.add(tmp);
+                } else {
+                    elements.add(new Element("page" + page + ": 1st element", Item.getRandom()));
+                    elements.add(new Element("page" + page + ": 2nd element", Item.getRandom()));
+                    elements.add(new Element("page" + page + ": 3rd element", Item.getRandom()));
+
+                    for (int i = 4; i < 20; i++) {
+                        Element x = (new Element("page" + page + ": " + i + "th element", Item.getRandom()));
+//                x.addChild(new Element("page" + page + ": " + i + "th child"));
+                        elements.add(x);
+                    }
+                }
+            }catch(NullPointerException e){
+                e.printStackTrace();
+                Toast.makeText(getActivity(), "TrackDatabase is empty!!", Toast.LENGTH_SHORT).show();
+
+                Element elem = new Element("Empty");
+                elements.add(elem);
             }
 
             listExpandable.setGroupIndicator(getResources().getDrawable(android.R.color.transparent));
-            MyExpandListAdapter expandListAdapter = new MyExpandListAdapter(getActivity(), elements);
+            ExpandListAdapter expandListAdapter = new ExpandListAdapter(getActivity(), elements);
+
+            listExpandable.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+                @Override
+                public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+                    Element e = elements.get(groupPosition).getChildren().get(childPosition);
+                    Item selected = new Item(e.getTrackName(), e.getpreviewUrl(), e.getArtworkUrl100(), e.getArtistName(), e.getCollectionName(), e.getRegisterTime());
+                    selected.save();
+                    startActivity(new Intent(getActivity(), PlayerActivity.class));
+                    return false;
+                }
+            });
 
             listExpandable.setAdapter(expandListAdapter);
 

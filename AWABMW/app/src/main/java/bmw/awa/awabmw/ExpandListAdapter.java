@@ -8,22 +8,24 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.loopj.android.image.SmartImageView;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by satsukies on 15/08/31.
  */
-public class MyExpandListAdapter extends BaseExpandableListAdapter
+public class ExpandListAdapter extends BaseExpandableListAdapter
 {
 
     private List<Element> elements;
     private Activity activity;
     private LayoutInflater inflater;
 
-    public MyExpandListAdapter(Activity activity, List<Element> elements)
+    public ExpandListAdapter(Activity act, List<Element> elements)
     {
-        this.activity = activity;
+        this.activity = act;
         this.elements = new ArrayList<>(elements);
         this.inflater = activity.getLayoutInflater();
     }
@@ -51,7 +53,7 @@ public class MyExpandListAdapter extends BaseExpandableListAdapter
          */
         view = inflater.inflate(R.layout.expandable_child, null);
         TextView textView = (TextView) view.findViewById(R.id.child_title);
-        textView.setText(element.getName());
+        textView.setText(element.getTrackName());
 
         return view;
     }
@@ -88,7 +90,7 @@ public class MyExpandListAdapter extends BaseExpandableListAdapter
         {
             view = inflater.inflate(R.layout.expandable_parent, null);
             TextView textView = (TextView) view.findViewById(R.id.parent_title);
-            textView.setText(element.getName());
+            textView.setText(element.getCollectionName());
             ImageView indicator = (ImageView) view.findViewById(R.id.parent_indicator);
             indicator.setImageResource(isExpanded ? R.drawable.ic_launcher : android.R.drawable.ic_media_play);
         }
@@ -97,9 +99,18 @@ public class MyExpandListAdapter extends BaseExpandableListAdapter
             /**
              * 子アイテムの描画
              */
+        try {
             view = inflater.inflate(R.layout.expandable_child, null);
             TextView textView = (TextView) view.findViewById(R.id.child_title);
+            textView.setText(element.getTrackName());
+            SmartImageView smartImageView = (SmartImageView) view.findViewById(R.id.child_jacket);
+            smartImageView.setImageUrl(element.getArtworkUrl100());
+        }catch(NullPointerException e){
+            e.printStackTrace();
+            view = inflater.inflate(R.layout.expandable_empty, null);
+            TextView textView = (TextView)view.findViewById(R.id.empty_message);
             textView.setText(element.getName());
+        }
         }
 
         return view;

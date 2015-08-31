@@ -26,7 +26,6 @@
             android:layout_below="@id/toolbar"
             android:background="@color/red_bright">
 
-
             <com.loopj.android.image.SmartImageView
                 android:id="@+id/img_jacket"
                 android:layout_width="48dp"

@@ -1,59 +1,110 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="bmw.awa.awabmw.RecommendationActivity">
 
-    <LinearLayout
-        android:id="@+id/layout_top"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/red_bright">
+        android:layout_height="match_parent">
 
-
-        <com.loopj.android.image.SmartImageView
-            android:id="@+id/img_jacket"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:padding="4dp"
-            android:src="@mipmap/ic_launcher" />
-
-        <TextView
-            android:id="@+id/txt_title"
-            android:layout_width="0dp"
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_weight="1"
-            android:ellipsize="marquee"
-            android:marqueeRepeatLimit="marquee_forever"
-            android:maxLines="1"
-            android:text="Addicted To a Memory (feat.Bahari)"
-            android:textColor="@android:color/white" />
+            android:background="?attr/colorPrimary"
+            android:minHeight="?attr/actionBarSize"
+            android:theme="@style/ThemeOverlay.AppCompat.ActionBar">
 
-        <ImageButton
-            android:layout_width="wrap_content"
+        </android.support.v7.widget.Toolbar>
+
+        <LinearLayout
+            android:id="@+id/layout_top"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:background="@android:drawable/ic_media_pause" />
+            android:layout_below="@id/toolbar"
+            android:background="@color/red_bright">
 
-        <ImageButton
-            android:layout_width="wrap_content"
+            <com.loopj.android.image.SmartImageView
+                android:id="@+id/img_jacket"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="4dp"
+                android:src="@mipmap/ic_launcher" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/txt_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="9"
+                    android:ellipsize="marquee"
+                    android:marqueeRepeatLimit="marquee_forever"
+                    android:maxLines="1"
+                    android:text="Addicted To a Memory (feat.Bahari)"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/txt_artist"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_weight="7"
+                    android:ellipsize="marquee"
+                    android:marqueeRepeatLimit="marquee_forever"
+                    android:maxLines="1"
+                    android:text="Zedd"
+                    android:textColor="@android:color/white" />
+
+
+            </LinearLayout>
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:background="@android:drawable/ic_media_pause" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:background="@android:drawable/ic_media_next" />
+
+        </LinearLayout>
+
+        <android.support.design.widget.TabLayout
+            android:id="@+id/tabs"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:background="@android:drawable/ic_media_next" />
+            android:layout_below="@id/layout_top"
+            android:background="@color/red_bright" />
 
-    </LinearLayout>
+        <android.support.v4.view.ViewPager
+            android:id="@+id/view_pager"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tabs" />
 
-    <android.support.design.widget.TabLayout
-        android:id="@+id/tabs"
+
+    </RelativeLayout>
+
+    <!-- nav drawer -->
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/drawer_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/layout_top"
-        android:background="@color/red_bright" />
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="#ffffffff"
+        android:elevation="16dp"
+        android:scrollbars="vertical" />
 
-    <android.support.v4.view.ViewPager
-        android:id="@+id/view_pager"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/tabs" />
-</RelativeLayout>
+</android.support.v4.widget.DrawerLayout>

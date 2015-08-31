@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- アイテム種別 type -->
+    <array name="type_menu">
+        <item name="key">type</item>
+        <item name="value">menu</item>
+    </array>
+    <array name="type_header">
+        <item name="key">type</item>
+        <item name="value">header</item>
+    </array>
+    <array name="type_category">
+        <item name="key">type</item>
+        <item name="value">category</item>
+    </array>
+    <array name="type_transparent">
+        <item name="key">type</item>
+        <item name="value">transparent</item>
+    </array>
+
+    <!-- 表示内容・設定 content -->
+    <array name="header_image">
+        <item name="key">icon</item>
+        <item name="value">@drawable/dummy_header</item>
+    </array>
+    <array name="category_text_1">
+        <item name="key">text</item>
+        <item name="value">Menu</item>
+    </array>
+    <array name="category_text_2">
+        <item name="key">text</item>
+        <item name="value">Settings</item>
+    </array>
+    <array name="menu_icon">
+        <item name="key">icon</item>
+        <item name="value">@mipmap/ic_launcher</item>
+    </array>
+    <array name="menu_text_1">
+        <item name="key">text</item>
+        <item name="value">PlayingList</item>
+    </array>
+    <array name="menu_text_2">
+        <item name="key">text</item>
+        <item name="value">Recommendation</item>
+    </array>
+    <array name="menu_text_3">
+        <item name="key">text</item>
+        <item name="value">My Compilations</item>
+    </array>
+    <array name="menu_text_4">
+        <item name="key">text</item>
+        <item name="value">Settings</item>
+    </array>
+    <array name="menu_text_5">
+        <item name="key">text</item>
+        <item name="value">About</item>
+    </array>
+
+    <!-- アイテム内の構造 item -->
+    <array name="menu1">
+        <item>@array/type_menu</item>
+        <item>@array/menu_icon</item>
+        <item>@array/menu_text_1</item>
+    </array>
+    <array name="menu2">
+        <item>@array/type_menu</item>
+        <item>@array/menu_icon</item>
+        <item>@array/menu_text_2</item>
+    </array>
+    <array name="menu3">
+        <item>@array/type_menu</item>
+        <item>@array/menu_icon</item>
+        <item>@array/menu_text_3</item>
+    </array>
+    <array name="menu4">
+        <item>@array/type_menu</item>
+        <item>@array/menu_icon</item>
+        <item>@array/menu_text_4</item>
+    </array>
+    <array name="menu5">
+        <item>@array/type_menu</item>
+        <item>@array/menu_icon</item>
+        <item>@array/menu_text_5</item>
+    </array>
+    <array name="category1">
+        <item>@array/type_category</item>
+        <item>@array/category_text_1</item>
+    </array>
+    <array name="category2">
+        <item>@array/type_category</item>
+        <item>@array/category_text_2</item>
+    </array>
+    <array name="header1">
+        <item>@array/type_header</item>
+        <item>@array/header_image</item>
+    </array>
+    <array name="transparent">
+        <item>@array/type_transparent</item>
+    </array>
+
+
+    <!-- ドロワーの全体構造 menu -->
+    <array name="drawer_menu_list">
+        <item>@array/header1</item>
+        <item>@array/category1</item>
+        <item>@array/menu1</item>
+        <item>@array/menu2</item>
+        <item>@array/menu3</item>
+        <item>@array/category2</item>
+        <item>@array/menu4</item>
+        <item>@array/menu5</item>
+        <!--<item>@array/divider1</item>-->
+        <!--<item>@array/sub_header1</item>-->
+        <!--<item>@array/menu4</item>-->
+        <!--<item>@array/menu5</item>-->
+    </array>
+</resources>

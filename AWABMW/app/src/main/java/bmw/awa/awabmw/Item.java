@@ -3,9 +3,13 @@ package bmw.awa.awabmw;
 /**
  * Created by hirokinaganuma on 15/08/29.
  */
+
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
+import com.activeandroid.query.Select;
+
+import java.util.List;
 
 @Table(name = "Items")
 public class Item extends Model {
@@ -46,4 +50,24 @@ public class Item extends Model {
         this.collectionName = collectionName;
         this.registerTime = registerTime;
     }
+
+    public static Item getRandom() {
+        return new Select().from(Item.class).orderBy("RANDOM()").executeSingle();
+    }
+
+    public static List<Item> getByAlbum(String album, String artist) {
+        List<Item> tmp = new Select()
+                .from(Item.class)
+//                .where("artistName = ?", artist)
+                .where("collectionName = ?", album)
+                .orderBy("track_name ASC")
+                .execute();
+        return tmp;
+    }
+
+    public static int getRecordCount(){
+        return new Select().from(Item.class).execute().size();
+    }
+
+
 }

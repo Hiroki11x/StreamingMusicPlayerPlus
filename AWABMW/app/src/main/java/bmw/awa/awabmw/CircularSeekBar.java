@@ -152,7 +152,7 @@ public class CircularSeekBar extends View {
 		innerColor.setColor(Color.parseColor("#ffffff")); // Set default background color to
 		// black
 
-		circleRing.setColor(Color.parseColor("#cfd8dc"));// Set default background color to Gray
+		circleRing.setColor(Color.parseColor("#eceff1"));// Set default background color to Gray
 
 		circleColor.setAntiAlias(true);
 		innerColor.setAntiAlias(true);

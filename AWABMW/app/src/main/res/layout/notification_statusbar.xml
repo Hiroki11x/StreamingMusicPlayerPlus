@@ -10,13 +10,16 @@
         android:id="@+id/imageicon"
         android:layout_width="64dip"
         android:layout_height="64dip"
-        android:layout_gravity="center" />
+        android:layout_gravity="center"
+        android:layout_marginLeft="10dp"
+        android:padding="5dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="1dip" >
+        android:padding="1dip"
+        android:layout_marginLeft="10dp">
 
         <LinearLayout
             android:layout_width="0dip"
@@ -52,7 +55,7 @@
                 android:layout_height="32dip"
                 android:layout_margin="5dip"
                 android:scaleType="center"
-                android:src="@android:drawable/ic_media_pause" />
+                android:background="@drawable/pause" />
 
             <ImageButton
                 android:id="@+id/btnNext"
@@ -60,7 +63,7 @@
                 android:layout_height="32dip"
                 android:layout_margin="5dip"
                 android:scaleType="center"
-                android:src="@android:drawable/ic_media_next" />
+                android:background="@drawable/skip_next_dp" />
         </LinearLayout>
     </LinearLayout>
 

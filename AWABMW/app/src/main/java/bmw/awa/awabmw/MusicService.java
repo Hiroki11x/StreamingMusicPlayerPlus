@@ -65,11 +65,11 @@ public class MusicService extends Service {
     private static Intent intentStore;
     private static Context contex;
     private int loopState = 0;//loopの選択肢
-    private String trackName_S = "";
-    private String previewUrl_S = "";
-    private String imageURI_S = "";
-    private String artistName_S = "";
-    private String albumName_S = "";
+    private volatile String trackName_S = "";
+    private volatile String previewUrl_S = "";
+    private volatile String imageURI_S = "";
+    private volatile String artistName_S = "";
+    private volatile String albumName_S = "";
 //    private ProgressDialog dialog;
 
     // Serviceに接続するためのBinderクラスを実装する
@@ -89,9 +89,7 @@ public class MusicService extends Service {
 
     public void subOnCreateService(boolean random){
         if (mp != null) {
-            if (mp.isPlaying()) {
-                mp.stop();
-            }
+            if (mp.isPlaying()) {mp.stop();}
             mp.release();
             mp = null;
         }
@@ -107,42 +105,6 @@ public class MusicService extends Service {
 
     @Override//2  Service接続時に呼ばれる。ServiceとActivityを仲介するIBinderを返却する。
     public IBinder onBind(Intent intent) {// 戻り値として、Serviceクラスとのbinderを返す。
-        /**
-         * intent.setActionみたいなので、notificationから再生なのか停止なのかを見るためにsetしてあるものを受け取りたいが
-         * intentをServiceはgetIntent()で受け取れないので、onBind()とかの引数で取得するしかない??
-         if (intent != null) {
-         getIntentContents(intent);
-         String action = intent.getAction();
-         if ("play".equals(action)) {
-         if (mp == null || !mp.isPlaying()) {
-         if(!TextUtils.isEmpty(previewUrl_S)){
-         mediaplayerPrepare(previewUrl_S);//エラー出た
-         mp.start();
-         //startForeground(1, generateNotification());
-         }
-         }
-         } else if ("pause".equals(action)) {
-         if (mp != null && mp.isPlaying()) {
-         mp.pause();
-         }
-         } else if ("stop".equals(action)) {
-         if (mp != null) {
-         mp.stop();
-         }
-         } else if ("next".equals(action)) {
-         //
-         } else if ("back".equals(action)) {
-         //
-         } else if ("playpause".equals(action)) {
-         if (mp != null && mp.isPlaying()) {
-         mp.pause();
-         } else if (!TextUtils.isEmpty(previewUrl_S)) {
-         mediaplayerPrepare(previewUrl_S);
-         mp.start();
-         }
-         }
-         }
-         */
         intentStore = intent;
         return mBinder;
     }
@@ -175,23 +137,17 @@ public class MusicService extends Service {
             mp.seekTo(0);
             mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
                 @Override
-                public void onCompletion(MediaPlayer mp) {
+                public void onCompletion(MediaPlayer mp) {//楽曲再生終了時
                     // イベント受領時の処理を記述する
                     Log.d("TAG", "onCompletion");//ここの検知はOK
-//                    Intent broadCastIntent = new Intent("awa");// intentを作成する。（SimpleService.ACTIONのブロードキャストとして配信させる）
-//                    sendBroadcast(broadCastIntent);
                     try{
-                        if(isActivityExist){
+                        if(isActivityExist){//Activityが存在しているとき
                             Intent broadCastIntent = new Intent("awa");// intentを作成する。（SimpleService.ACTIONのブロードキャストとして配信させる）
-                            broadCastIntent.setAction("onCreate");
                             sendBroadcast(broadCastIntent);
-                            subOnCreateService(true);
-                            Intent broadCastIntent2 = new Intent("awa");// intentを作成する。（SimpleService.ACTIONのブロードキャストとして配信させる）
-                            broadCastIntent2.setAction("afterCreate");
-                            sendBroadcast(broadCastIntent2);
-                        }else{
+                        }else{//Activityが存在していないとき
                             subOnCreateService(true);
                             startOrStop();
+                            Log.d("DEBUG TEST", "onCompletion->NextTrack");
                         }
                     }catch (RemoteException e){
                         e.printStackTrace();
@@ -221,7 +177,7 @@ public class MusicService extends Service {
     }
 
     //再生または停止を行う
-    public void startOrStop() throws RemoteException {//Activity#centerButtonClickedから呼ばれる
+    public void startOrStop() throws RemoteException,IllegalStateException {//Activity#centerButtonClickedから呼ばれる
         //再生ボタンの設定
         if (mp.isPlaying()) {//再生->停止の時
             mp.pause();
@@ -249,27 +205,25 @@ public class MusicService extends Service {
     }
 
     public void getIntentContents(boolean random) throws RemoteException {
+        Item item = null;//DataBaseからそれぞれの値を取得してくる
 
-        //DataBaseからそれぞれの値を取得してくる
-        Item item = null;
-
-        if(isActivityExist){
-            if(random){
+        if(isActivityExist){//Activity存在しているとき
+            if(random){//randomに取得
                 SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
                 long keyId = data.getLong("key",1 );
                 item = new Select().from(Item.class).where("Id = ?", keyId).executeSingle();
-            }else{
+            }else{//初期でタップされてきたとき
                 item = new Select().from(Item.class).orderBy("id DESC").executeSingle();
             }
-        }else{//Activityが存在しないときはService側でitemをランダムに取得
+        }else{//Activityが存在しないときはService側でitemをランダムに取得しSharedPreference保存
             item = new Select().from(Item.class).orderBy("RANDOM()").executeSingle();
             SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = data.edit();
             editor.putLong("key",item.getId());
             Log.d("\"key\",item.getId()", "" + item.getId());
-            editor.apply();
+            editor.apply();//Activity存在していないときはitemをSharedPreference保存
+            Log.d("DEBUG TEST", "Create and Save Item Id at Service#getIntentContents: [" + item.getId() + "]");
         }
-
         trackName_S = item.track_name;
         previewUrl_S = item.previewUrl;
         imageURI_S = item.artworkUrl100;
@@ -300,21 +254,6 @@ public class MusicService extends Service {
         mNotificationView.setImageViewResource(R.id.imageicon, R.drawable.mplus_logo);//第一引数はセット先のID
 
         /**********これでも表示されない**********
-         SmartImageView image = new SmartImageView(this);
-         image.setImageURI(Uri.parse(imageURI_S));
-         mNotificationView.setImageViewBitmap(R.id.imageicon, image.getDrawingCache());
-         *
-         ContentResolver cr = getContentResolver();
-         Bitmap image =null;
-         try{
-         InputStream in = cr.openInputStream(Uri.parse(imageURI_S));
-         image = BitmapFactory.decodeStream(in);
-         in.close();
-         }catch (FileNotFoundException e){
-         e.printStackTrace();
-         }catch (IOException e){
-         e.printStackTrace();
-         }
          mNotificationView.setImageViewBitmap(R.id.imageicon, jacketImage_S);
          mNotificationView.setImageViewBitmap(R.id.imageicon, image);
          mNotificationView.setImageViewUri(R.id.imageicon, Uri.parse(imageURI_S));//これだと画像が表示されない
@@ -326,8 +265,8 @@ public class MusicService extends Service {
         // イメージアイコンを押された時のintentを設定
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(MusicService.this, PlayerActivity.class), PendingIntent.FLAG_ONE_SHOT);
         mNotificationView.setOnClickPendingIntent(R.id.imageicon, contentIntent);
-        mNotificationView.setOnClickPendingIntent(R.id.btnPlay, createPendingIntent("playpause"));// 再生、一時停止の際に呼ばれるIntent設定
-        mNotificationView.setOnClickPendingIntent(R.id.btnNext, createPendingIntent("next"));// 次へボタンの際に呼ばれるIntentを設定
+        mNotificationView.setOnClickPendingIntent(R.id.btnPlay, createPendingIntent(R.id.btnPlay));// 再生、一時停止の際に呼ばれるIntent設定
+        mNotificationView.setOnClickPendingIntent(R.id.btnNext, createPendingIntent(R.id.btnNext));// 次へボタンの際に呼ばれるIntentを設定
 
         NotificationManager manager = (NotificationManager)getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
         if (builder.build() != null) {
@@ -335,50 +274,14 @@ public class MusicService extends Service {
         }
     }
 
-    private PendingIntent createPendingIntent(String action) {//generateNotificationで呼ばれる
-        Intent service = new Intent(this, MusicService.class);
-//        service.setAction(action);
-        return PendingIntent.getService(this, 0, service, 0);
+    private PendingIntent createPendingIntent(int id) {//generateNotificationで呼ばれる
+        Intent service = new Intent(this,PlayerActivity.class);
+        service.setAction("ACTION_STOP_PLAY");
+        return PendingIntent.getBroadcast(this, id, service, PendingIntent.FLAG_UPDATE_CURRENT);
+//        return PendingIntent.getService(this, id, service, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     public MediaPlayer getMediaPlayer() throws RemoteException {
         return mp;
     }
-
-    /****
-     class PrepareTask extends AsyncTask<Void, Void, Void> {
-
-    @Override
-    protected Void doInBackground(Void... params) {
-    // DB登録等のUIに関与しない処理
-
-    if (mp != null) {
-    if (mp.isPlaying()) {
-    mp.stop();
-    }
-    mp.release();
-    mp = null;
-    }
-
-    try {
-    getIntentContents();
-    if (!TextUtils.isEmpty(previewUrl_S)) {
-    mediaplayerPrepare(previewUrl_S);//エラー出た
-
-    }
-    } catch (RemoteException e) {
-    e.printStackTrace();
-    }
-    dialog.dismiss();
-    return params[0];
-    return null;
-    }
-
-    @Override
-    public Void onPostExecute(Void... params) {
-    // くるくるを消去
-    return params[0];
-    }
-    }
-     */
 }

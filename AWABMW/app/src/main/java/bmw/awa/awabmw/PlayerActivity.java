@@ -47,6 +47,7 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
     AlphaAnimation feedin_btn;
     AlphaAnimation feedout_btn;
 
+    //このReceiverはActivity起動時にしか使えない
     public BroadcastReceiver myReceiver = new BroadcastReceiver() {//Serviceからの受信機
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -61,8 +62,9 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
             }else if(intent.getAction()=="afterCreate"){
                 afterBinding();
                 centerButtonClicked();
-            }else{
+            }else{//Activityが存在し曲が終了したときにここが呼ばれる
                 nextTrack();
+                Log.d("DEBUG TEST", "----------intent BY BROADCASTRECEIVER----------");
             }
         }
     };
@@ -83,7 +85,28 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.player_activity);
-        subOnCreate(false);
+
+
+        //notificationからの呼び出し
+        if(getIntent().getAction()=="ACTION_STOP_PLAY") {//playpauseが押されたとき
+            Log.d("DEBUG TEST","----------onCreate Intent PLAY PAUSE----------");
+            handler = new Handler();//Handlerを初期化
+            Intent intent = new Intent(PlayerActivity.this, MusicService.class);//Serviceをバインドする
+            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);//エラー出たけど無視できそう(ServiceConnectionLeaked)
+            SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);//現在再生されている曲を取得
+            long keyId = data.getLong("key", 1);
+            Item item = new Select().from(Item.class).where("Id = ?", keyId).executeSingle();
+            Log.d("DEBUG TEST","Item Id at Activity#onCreate: ["+ keyId +"] from Notification");
+            commonOnCreate(item);
+            centerButtonClicked();
+        }else if(getIntent().getAction()=="next"){
+            Log.d("DEBUG TEST","----------onCreate Intent NEXT TRACK----------");
+            nextTrack();
+            centerButtonClicked();
+        }else{//普通のActivity呼び出し
+            Log.d("DEBUG TEST","----------onCreate Intent DAFAULT----------");
+            subOnCreate(false);
+        }
     }
 
     public void subOnCreate(boolean random){
@@ -92,18 +115,24 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
         Item item;
         if(random){///ItemをランダムにDBから取得する
             item = new Select().from(Item.class).orderBy("RANDOM()").executeSingle();
-        }else{
+        }else{//onCreateか実行されるとき,DBのトップから
             Intent intent = new Intent(PlayerActivity.this,MusicService.class);//Serviceをバインドする
-            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);//エラー出た(ServiceConnectionLeaked)
-            item = new Select().from(Item.class).orderBy("id DESC").executeSingle();
+            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);//エラー出たけど無視できそう(ServiceConnectionLeaked)
+            item = new Select().from(Item.class).orderBy("id DESC").executeSingle();//
             IntentFilter filter=new IntentFilter("awa");
-            registerReceiver(myReceiver, filter);
+            registerReceiver(myReceiver, filter);//BroadCastReceiverセットする
         }
+        Log.d("DEBUG TEST","Item Id at Activity#subOnCreate: ["+ item.getId() +"]");
         SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = data.edit();
         editor.putLong("key",item.getId());
         Log.d("\"key\",item.getId()", "" + item.getId());
         editor.apply();
+
+        commonOnCreate(item);
+    }
+
+    public void commonOnCreate(Item item){
 
         String trackName = item.track_name;
         String imageURI = item.artworkUrl100;
@@ -130,7 +159,9 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
         feedout_btn.setFillAfter(true);//もとに戻らない
 
         mBindService.isActivityExist = true;
+        Log.d("DEBUG TEST","commonOnCreate isActivity:"+mBindService.isActivityExist);
     }
+
 
     public void start(View v) {//再生&停止ボタンが押された時の処理
         centerButtonClicked();//再生ボタンが押された処理をサブルーチン化
@@ -173,11 +204,15 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
                                 });
                             }catch (RemoteException e) {
                                 e.printStackTrace();
+                            }catch (IllegalStateException e){
+                                e.printStackTrace();
                             }
                         }
                     }, 0, 100); // 1000ミリ秒間隔で実行 timerTaskを実行
                 }
             }catch (RemoteException e) {
+                e.printStackTrace();
+            }catch (IllegalStateException e){
                 e.printStackTrace();
             }
         }
@@ -271,6 +306,7 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
         }
         mBindService.isActivityExist = false;
         unregisterReceiver(myReceiver);
+        Log.d("DEBUG TEST","onDestroy isActivity:"+mBindService.isActivityExist);
     }
 
     public void nextTrackClicked(View v){//次へボタンが押された時の処理は全てここに

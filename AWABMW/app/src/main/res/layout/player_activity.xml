@@ -108,16 +108,6 @@ tools:context="bmw.awa.awabmw.DetailActivity"
 
         </FrameLayout>
 
-        <ImageButton
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:id="@+id/imageButton5"
-            android:layout_gravity="center_horizontal"
-            android:layout_above="@+id/button"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="387dp"
-            android:background="@drawable/select_music" />
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -169,6 +159,17 @@ tools:context="bmw.awa.awabmw.DetailActivity"
             android:layout_marginLeft="15dp"
             android:layout_marginTop="20dp"
             android:src="@drawable/nowplayng" />
+
+        <SeekBar
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/seekBar"
+            android:layout_gravity="center_horizontal|top"
+            android:thumb="@drawable/search_new"
+            android:progressDrawable="@drawable/progress"
+            android:indeterminate="false"
+            android:layout_marginTop="450dp" />
+
     </FrameLayout>
 
 </RelativeLayout>

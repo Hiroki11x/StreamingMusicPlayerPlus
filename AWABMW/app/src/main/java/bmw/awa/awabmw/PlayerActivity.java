@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.activeandroid.query.Select;
@@ -40,6 +41,7 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
     SmartImageView jacketImage;
     TextView titleText, artistText;
     CircularSeekBar seekBar;
+    SeekBar intentSeekBar;
     Timer timer;
     Handler handler;
     TextView LeftSideText,RightSideText;//現在の再生位置を表示
@@ -47,27 +49,15 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
     AlphaAnimation feedin_btn;
     AlphaAnimation feedout_btn;
 
-    //このReceiverはActivity起動時にしか使えない
+    //-----------------このReceiverはActivity起動時にしか使えない------------------------
     public BroadcastReceiver myReceiver = new BroadcastReceiver() {//Serviceからの受信機
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d("onReceive", "@FromServiceBroadcastReceiver Called");
-
-            if(intent.getAction()=="onCreate"){
-                if(timer!=null){//これがないと再生せずに戻った時エラーでる
-                    timer.cancel();
-                    timer = null;
-                }
-                subOnCreate(true);//ランダムに次の曲へ
-            }else if(intent.getAction()=="afterCreate"){
-                afterBinding();
-                centerButtonClicked();
-            }else{//Activityが存在し曲が終了したときにここが呼ばれる
-                nextTrack();
-                Log.d("DEBUG TEST", "----------intent BY BROADCASTRECEIVER----------");
-            }
+            nextTrack();
+            Log.d("DEBUG TEST", "----------intent BY BROADCASTRECEIVER----------");
         }
-    };
+    };//------------------------------------------------------------------------------
 
     private ServiceConnection mConnection = new ServiceConnection() {// Serviceとのインターフェースクラス
         //3 Service接続後、Binderが確立したタイミングで呼び出される。
@@ -86,25 +76,36 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
         super.onCreate(savedInstanceState);
         setContentView(R.layout.player_activity);
 
-
         //notificationからの呼び出し
         if(getIntent().getAction()=="ACTION_STOP_PLAY") {//playpauseが押されたとき
-            Log.d("DEBUG TEST","----------onCreate Intent PLAY PAUSE----------");
+            Log.d("DEBUG TEST","----------onCreate Intent PLAY PAUSE ----------");
+
+            /*
             handler = new Handler();//Handlerを初期化
+
             Intent intent = new Intent(PlayerActivity.this, MusicService.class);//Serviceをバインドする
             bindService(intent, mConnection, Context.BIND_AUTO_CREATE);//エラー出たけど無視できそう(ServiceConnectionLeaked)
+
             SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);//現在再生されている曲を取得
             long keyId = data.getLong("key", 1);
             Item item = new Select().from(Item.class).where("Id = ?", keyId).executeSingle();
-            Log.d("DEBUG TEST","Item Id at Activity#onCreate: ["+ keyId +"] from Notification");
             commonOnCreate(item);
-            centerButtonClicked();
-        }else if(getIntent().getAction()=="next"){
-            Log.d("DEBUG TEST","----------onCreate Intent NEXT TRACK----------");
+            Log.d("DEBUG TEST", "Item Id at Activity#onCreate: [" + keyId + "] from Notification");
+            IntentFilter filter=new IntentFilter("awa");
+            registerReceiver(myReceiver, filter);//BroadCastReceiverセットする
+            mBindService.isNotif=true;
+            */
+
+            subOnCreate(false);
             nextTrack();
-            centerButtonClicked();
+        }else if(getIntent().getAction()=="ACTION_NEXT"){
+            Log.d("DEBUG TEST", "----------onCreate Intent NEXT TRACK----------");
+            subOnCreate(false);
+            nextTrack();
+//            centerButtonClicked();
+
         }else{//普通のActivity呼び出し
-            Log.d("DEBUG TEST","----------onCreate Intent DAFAULT----------");
+            Log.d("DEBUG TEST", "----------onCreate Intent DAFAULT----------");
             subOnCreate(false);
         }
     }
@@ -122,6 +123,7 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
             IntentFilter filter=new IntentFilter("awa");
             registerReceiver(myReceiver, filter);//BroadCastReceiverセットする
         }
+
         Log.d("DEBUG TEST","Item Id at Activity#subOnCreate: ["+ item.getId() +"]");
         SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = data.edit();
@@ -158,8 +160,35 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
         feedout_btn.setDuration(500);//表示時間を指定
         feedout_btn.setFillAfter(true);//もとに戻らない
 
+        intentSeekBar = (SeekBar)findViewById(R.id.seekBar);
+        intentSeekBar.setProgress(0);
+        intentSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            int firstProgress;
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                firstProgress = seekBar.getProgress();
+            }
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                if (firstProgress < 50) {
+                    seekBar.setProgress(100);
+                    Intent intent = new Intent(PlayerActivity.this,RecommendationActivity.class);
+                    startActivity(intent);
+                }else{
+                    seekBar.setProgress(0);
+                }
+            }
+        });
         mBindService.isActivityExist = true;
-        Log.d("DEBUG TEST","commonOnCreate isActivity:"+mBindService.isActivityExist);
+        Log.d("DEBUG TEST", "commonOnCreate isActivity:" + mBindService.isActivityExist);
+
     }
 
 
@@ -208,7 +237,7 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
                                 e.printStackTrace();
                             }
                         }
-                    }, 0, 100); // 1000ミリ秒間隔で実行 timerTaskを実行
+                    }, 0, 1000); // 1000ミリ秒間隔で実行 timerTaskを実行
                 }
             }catch (RemoteException e) {
                 e.printStackTrace();
@@ -243,8 +272,8 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 v.onTouchEvent(event);//superと同じような役割(これで、シークバーのトラックの処理が可能)
-                if(mBindService!=null) {
-                    try{
+                if (mBindService != null) {
+                    try {
                         if (event.getAction() == MotionEvent.ACTION_UP) {
                             RightSideText.setText(maxLength); // 現在の再生位置をセット
                             LeftSideText.setText(nowLength);
@@ -261,7 +290,7 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
                             playButton.setBackground(getResources().getDrawable(R.drawable.pause));
                             playButton.setAnimation(feedin_btn);
                         }
-                    }catch (RemoteException e){
+                    } catch (RemoteException e) {
                         e.printStackTrace();
                     }
                 }
@@ -305,7 +334,9 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
             }
         }
         mBindService.isActivityExist = false;
-        unregisterReceiver(myReceiver);
+        if(myReceiver!=null) {
+            unregisterReceiver(myReceiver);
+        }
         Log.d("DEBUG TEST","onDestroy isActivity:"+mBindService.isActivityExist);
     }
 

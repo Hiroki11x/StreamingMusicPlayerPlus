@@ -64,6 +64,7 @@ public class MusicService extends Service {
     private static MediaPlayer mp;
     private static Intent intentStore;
     private static Context contex;
+    public static volatile boolean isNotif=false;
     private int loopState = 0;//loopの選択肢
     private volatile String trackName_S = "";
     private volatile String previewUrl_S = "";
@@ -94,7 +95,7 @@ public class MusicService extends Service {
             mp = null;
         }
         try {
-            getIntentContents(random);//falseとする時ランダムでなく最新のものを取得
+            getIntentContents(random,isNotif);//falseとする時ランダムでなく最新のものを取得
             if (!TextUtils.isEmpty(previewUrl_S)) {
                 mediaplayerPrepare(previewUrl_S);//エラー出た
             }
@@ -139,11 +140,12 @@ public class MusicService extends Service {
                 @Override
                 public void onCompletion(MediaPlayer mp) {//楽曲再生終了時
                     // イベント受領時の処理を記述する
-                    Log.d("TAG", "onCompletion");//ここの検知はOK
+                    Log.d("DEBUG TEST", "onCompletion @Service");//ここの検知はOK
                     try{
                         if(isActivityExist){//Activityが存在しているとき
                             Intent broadCastIntent = new Intent("awa");// intentを作成する。（SimpleService.ACTIONのブロードキャストとして配信させる）
                             sendBroadcast(broadCastIntent);
+                            Log.d("DEBUG TEST", "onCompletion->BroadCast");
                         }else{//Activityが存在していないとき
                             subOnCreateService(true);
                             startOrStop();
@@ -204,7 +206,7 @@ public class MusicService extends Service {
         }
     }
 
-    public void getIntentContents(boolean random) throws RemoteException {
+    public void getIntentContents(boolean random,boolean notif) throws RemoteException {
         Item item = null;//DataBaseからそれぞれの値を取得してくる
 
         if(isActivityExist){//Activity存在しているとき
@@ -216,19 +218,32 @@ public class MusicService extends Service {
                 item = new Select().from(Item.class).orderBy("id DESC").executeSingle();
             }
         }else{//Activityが存在しないときはService側でitemをランダムに取得しSharedPreference保存
-            item = new Select().from(Item.class).orderBy("RANDOM()").executeSingle();
             SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = data.edit();
-            editor.putLong("key",item.getId());
-            Log.d("\"key\",item.getId()", "" + item.getId());
-            editor.apply();//Activity存在していないときはitemをSharedPreference保存
-            Log.d("DEBUG TEST", "Create and Save Item Id at Service#getIntentContents: [" + item.getId() + "]");
+            if(notif){//Activity存在せず、Notificationから呼び出されたとき
+                //SharedPreference保存されているIDから選曲
+                long keyId = data.getLong("key",1 );
+                item = new Select().from(Item.class).where("Id = ?", keyId).executeSingle();
+                isNotif=false;
+            }else{//Activityが存在せず、ランダム再生のとき
+                item = new Select().from(Item.class).orderBy("RANDOM()").executeSingle();
+                SharedPreferences.Editor editor = data.edit();
+                editor.putLong("key", item.getId());
+                Log.d("\"key\",item.getId()", "" + item.getId());
+                editor.apply();//Activity存在していないときはitemをSharedPreference保存
+            }
         }
+        Log.d("DEBUG TEST", "Create and Save Item Id at Service#getIntentContents: [" + item.getId() + "]");
         trackName_S = item.track_name;
         previewUrl_S = item.previewUrl;
         imageURI_S = item.artworkUrl100;
         artistName_S = item.artistName;
         albumName_S = item.collectionName;
+
+        SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = data.edit();
+        editor.putLong("key",item.getId());
+        Log.d("\"key\",item.getId()", "" + item.getId());
+        editor.apply();
     }
 
     //targetAPtとかSuppressWarning入れないと落ちる。
@@ -247,7 +262,7 @@ public class MusicService extends Service {
         builder.setSmallIcon(R.drawable.mplus_logo);//ここに上側に表示する画像を
         builder.setContent(mNotificationView);//独自レイアウトをNotificationに設定
         builder.setTicker("M+ now Playing...");// 通知領域に初期表示時のメッセージを設定
-        builder.setContentIntent(pi);//pendingIntentをセット
+        //builder.setContentIntent(pi);//pendingIntentをセット
         builder.setDefaults(Notification.DEFAULT_LIGHTS);
 
         // ステータスバーにレイアウト設定されているイメージアイコンを設定
@@ -258,15 +273,18 @@ public class MusicService extends Service {
          mNotificationView.setImageViewBitmap(R.id.imageicon, image);
          mNotificationView.setImageViewUri(R.id.imageicon, Uri.parse(imageURI_S));//これだと画像が表示されない
          */
-
         mNotificationView.setTextViewText(R.id.textTitle, trackName_S);// ステータスバーのレイアウトに設定されていタイトル名にタイトルを設定
         mNotificationView.setTextViewText(R.id.textArtist, artistName_S);// ステータスバーのレイアウトに設定されているアーティスト名にアーティストを設定
 
         // イメージアイコンを押された時のintentを設定
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(MusicService.this, PlayerActivity.class), PendingIntent.FLAG_ONE_SHOT);
-        mNotificationView.setOnClickPendingIntent(R.id.imageicon, contentIntent);
+//        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(MusicService.this, PlayerActivity.class), PendingIntent.FLAG_ONE_SHOT);
+//        mNotificationView.setOnClickPendingIntent(R.id.imageicon, contentIntent);
+
+        Intent service = new Intent(MusicService.this,PlayerActivity.class);
+        mNotificationView.setOnClickFillInIntent(R.id.imageicon, service);
+
         mNotificationView.setOnClickPendingIntent(R.id.btnPlay, createPendingIntent(R.id.btnPlay));// 再生、一時停止の際に呼ばれるIntent設定
-        mNotificationView.setOnClickPendingIntent(R.id.btnNext, createPendingIntent(R.id.btnNext));// 次へボタンの際に呼ばれるIntentを設定
+        mNotificationView.setOnClickPendingIntent(R.id.btnNext, createPendingIntentNext(R.id.btnNext));// 次へボタンの際に呼ばれるIntentを設定
 
         NotificationManager manager = (NotificationManager)getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
         if (builder.build() != null) {
@@ -275,10 +293,15 @@ public class MusicService extends Service {
     }
 
     private PendingIntent createPendingIntent(int id) {//generateNotificationで呼ばれる
-        Intent service = new Intent(this,PlayerActivity.class);
+        Intent service = new Intent(MusicService.this,PlayerActivity.class);
         service.setAction("ACTION_STOP_PLAY");
-        return PendingIntent.getBroadcast(this, id, service, PendingIntent.FLAG_UPDATE_CURRENT);
-//        return PendingIntent.getService(this, id, service, PendingIntent.FLAG_UPDATE_CURRENT);
+        return PendingIntent.getActivity(MusicService.this, id, service, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private PendingIntent createPendingIntentNext(int id) {//generateNotificationで呼ばれる
+        Intent service = new Intent(MusicService.this,PlayerActivity.class);
+        service.setAction("ACTION_NEXT");
+        return PendingIntent.getActivity(MusicService.this, id, service, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     public MediaPlayer getMediaPlayer() throws RemoteException {

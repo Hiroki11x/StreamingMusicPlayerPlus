@@ -42,7 +42,7 @@ public class Element {
         return item.previewUrl;
     }
 
-    public int getRegisterTime(){
+    public long getRegisterTime(){
         return item.registerTime;
     }
 

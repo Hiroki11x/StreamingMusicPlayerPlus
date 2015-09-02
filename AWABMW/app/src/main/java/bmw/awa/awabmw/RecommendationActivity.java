@@ -1,9 +1,11 @@
 package bmw.awa.awabmw;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
@@ -22,6 +24,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
@@ -38,15 +41,18 @@ import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 
 public class RecommendationActivity extends AppCompatActivity implements ViewPager.OnPageChangeListener {
 
-    @Bind(R.id.tabs) TabLayout mTabLayout;
-    @Bind(R.id.txt_title) TextView txtTitle;
-    @Bind(R.id.img_jacket) SmartImageView imgJacket;
-    @Bind(R.id.view_pager) ViewPager viewPager;
-    @Bind(R.id.toolbar) Toolbar toolbar;
+    @Bind(R.id.tabs)
+    TabLayout mTabLayout;
+    @Bind(R.id.view_pager)
+    ViewPager viewPager;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
 
     private SearchView mSearchView;
     private MaterialMenuIconToolbar menuIcon;
@@ -57,11 +63,22 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
     private DrawerAdapter mAdapter;
     private boolean isDrawerOpened;
 
-    private String[] factor = new String[]{"album", "artist", "tempo", "tempo2", "tempo3"};
-    private int[] iconId = {R.drawable.album, R.drawable.artist, R.drawable.tempo, R.drawable.tempo, R.drawable.tempo};
+    private String[] factor = new String[]{"tempo", "album", "artist"};
+    private Drawable[] iconSelector;
 
     //unimplement
     String playingArtist, playingTrack;
+
+    public void checkNavigationBarVisible() {
+        if (ViewConfiguration.get(this).hasPermanentMenuKey()) {
+            findViewById(R.id.space).setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +86,13 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
         setContentView(R.layout.activity_recommendation);
 
         ButterKnife.bind(this);
+
+        iconSelector = new Drawable[]
+                {
+                        getResources().getDrawable(R.drawable.selector_tempo),
+                        getResources().getDrawable(R.drawable.selector_artist),
+                        getResources().getDrawable(R.drawable.selector_album)
+                };
 
         /**
          * Toolbar
@@ -78,10 +102,15 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
 
         setSupportActionBar(toolbar);
 
+        toolbar.setBackgroundColor(Color.parseColor("#88000000"));
+        getSupportActionBar().setHomeButtonEnabled(true);
+
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                menuIcon.animateState(MaterialMenuDrawable.IconState.ARROW);
+//                menuIcon.animateState(MaterialMenuDrawable.IconState.ARROW);
+                finish();
+                return;
             }
         });
 
@@ -103,6 +132,8 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
             }
         });
 
+        checkNavigationBarVisible();
+
         /**
          * DrawerLayout
          */
@@ -114,36 +145,38 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
         // ドロワー開くボタン(三本線)を表示
         mDrawerToggle.setDrawerIndicatorEnabled(true);
 
-        mDrawerLayout.setDrawerListener(new DrawerLayout.SimpleDrawerListener() {
-            @Override
-            public void onDrawerSlide(View drawerView, float slideOffset) {
-                menuIcon.setTransformationOffset(
-                        MaterialMenuDrawable.AnimationState.BURGER_ARROW,
-                        isDrawerOpened ? 2 - slideOffset : slideOffset
-                );
-            }
+//        mDrawerToggle.setHomeAsUpIndicator(menuIcon.setState(MaterialMenuDrawable.IconState.ARROW));
 
-            @Override
-            public void onDrawerOpened(View drawerView) {
-//                super.onDrawerOpened(drawerView);
-                isDrawerOpened = true;
-            }
-
-            @Override
-            public void onDrawerClosed(View drawerView) {
-//                super.onDrawerClosed(drawerView);
-                isDrawerOpened = false;
-            }
-
-            @Override
-            public void onDrawerStateChanged(int newState) {
-//                super.onDrawerStateChanged(newState);
-                if (newState == DrawerLayout.STATE_IDLE) {
-                    if (isDrawerOpened) menuIcon.setState(MaterialMenuDrawable.IconState.ARROW);
-                    else menuIcon.setState(MaterialMenuDrawable.IconState.BURGER);
-                }
-            }
-        });
+//        mDrawerLayout.setDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+//            @Override
+//            public void onDrawerSlide(View drawerView, float slideOffset) {
+//                menuIcon.setTransformationOffset(
+//                        MaterialMenuDrawable.AnimationState.BURGER_ARROW,
+//                        isDrawerOpened ? 2 - slideOffset : slideOffset
+//                );
+//            }
+//
+//            @Override
+//            public void onDrawerOpened(View drawerView) {
+////                super.onDrawerOpened(drawerView);
+//                isDrawerOpened = true;
+//            }
+//
+//            @Override
+//            public void onDrawerClosed(View drawerView) {
+////                super.onDrawerClosed(drawerView);
+//                isDrawerOpened = false;
+//            }
+//
+//            @Override
+//            public void onDrawerStateChanged(int newState) {
+////                super.onDrawerStateChanged(newState);
+//                if (newState == DrawerLayout.STATE_IDLE) {
+//                    if (isDrawerOpened) menuIcon.setState(MaterialMenuDrawable.IconState.ARROW);
+//                    else menuIcon.setState(MaterialMenuDrawable.IconState.ARROW);
+//                }
+//            }
+//        });
 
         /**
          * RecyclerView
@@ -195,45 +228,12 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
             }
         };
 
-        imgJacket.setImageDrawable(getResources().getDrawable(R.drawable.jacket));
-        imgJacket.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-
-        mTabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
-        mTabLayout.addTab(mTabLayout.newTab());
-        mTabLayout.addTab(mTabLayout.newTab());
+        mTabLayout.setTabMode(TabLayout.MODE_FIXED);
         mTabLayout.addTab(mTabLayout.newTab());
         mTabLayout.addTab(mTabLayout.newTab());
         mTabLayout.addTab(mTabLayout.newTab());
 
-        mTabLayout.setOnTabSelectedListener(
-                new TabLayout.OnTabSelectedListener() {
-                    @Override
-                    public void onTabSelected(TabLayout.Tab tab) {
-                        tab.setIcon(R.drawable.ic_launcher);
-                    }
-
-                    @Override
-                    public void onTabUnselected(TabLayout.Tab tab) {
-                        int lp = 0;
-
-                        for (lp = 0; lp < mTabLayout.getTabCount(); lp++) {
-                            if (tab.getPosition() == lp) {
-                                tab.setIcon(getResources().getDrawable(iconId[lp]));
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onTabReselected(TabLayout.Tab tab) {
-
-                    }
-                }
-
-        );
-
-        mTabLayout.setSelectedTabIndicatorColor(Color.WHITE);
-
-        txtTitle.setSelected(true);
+        mTabLayout.setSelectedTabIndicatorColor(getResources().getColor(R.color.accent));
 
         FragmentPagerAdapter pagerAdapter = new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
@@ -243,7 +243,7 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
 
             @Override
             public int getCount() {
-                return 5;
+                return 3;
             }
 
             @Override
@@ -256,16 +256,8 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
         viewPager.addOnPageChangeListener(this);
 
         mTabLayout.setupWithViewPager(viewPager);
-
-        mTabLayout.getTabAt(0).setTag("artist").setIcon(R.drawable.artist);
-        mTabLayout.getTabAt(1).setTag("album").setIcon(R.drawable.album);
-        mTabLayout.getTabAt(2).setTag("tempo").setIcon(R.drawable.tempo);
-        mTabLayout.getTabAt(3).setTag("tempo2").setIcon(R.drawable.tempo);
-        mTabLayout.getTabAt(4).setTag("tempo3").setIcon(R.drawable.tempo);
-
-        int x = 0;
-        for (x = 0; x < mTabLayout.getTabCount(); x++) {
-            mTabLayout.getTabAt(x).setTag(factor[x]).setIcon(iconId[x]);
+        for (int x = 0; x < mTabLayout.getTabCount(); x++) {
+            mTabLayout.getTabAt(x).setTag(factor[x]).setIcon(iconSelector[x]);
         }
     }
 
@@ -367,29 +359,30 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
             elements = new ArrayList<>();
 
             try {
+                switch (page) {
+                    case 1:
+                    case 3:
+                        for (int i = 0; i < 20; i++) {
+                            Element x = (new Element("page" + page + ": " + i + "th element", Item.getRandom()));
+                            elements.add(x);
+                        }
 
-                if (page == 2) {
-                    Item ii = Item.getRandom();
-                    List<Item> list = Item.getByAlbum(ii.collectionName, ii.artistName);
-                    Element tmp = new Element(Item.getByAlbum(ii.collectionName, ii.artistName).get(0));
+                        break;
+                    case 2:
+                        Item ii = Item.getRandom();
+                        List<Item> list = Item.getByAlbum(ii.collectionName, ii.artistName);
+                        Element tmp = new Element(Item.getByAlbum(ii.collectionName, ii.artistName).get(0));
 
-                    for (Item i : list) {
-                        tmp.addChild(new Element(i));
-                    }
+                        for (Item i : list) {
+                            tmp.addChild(new Element(i));
+                        }
 
-                    elements.add(tmp);
-                } else {
-                    elements.add(new Element("page" + page + ": 1st element", Item.getRandom()));
-                    elements.add(new Element("page" + page + ": 2nd element", Item.getRandom()));
-                    elements.add(new Element("page" + page + ": 3rd element", Item.getRandom()));
-
-                    for (int i = 4; i < 20; i++) {
-                        Element x = (new Element("page" + page + ": " + i + "th element", Item.getRandom()));
-//                x.addChild(new Element("page" + page + ": " + i + "th child"));
-                        elements.add(x);
-                    }
+                        elements.add(tmp);
+                        break;
+                    default:
+                        break;
                 }
-            }catch(NullPointerException e){
+            } catch (NullPointerException e) {
                 e.printStackTrace();
                 Toast.makeText(getActivity(), "TrackDatabase is empty!!", Toast.LENGTH_SHORT).show();
 
@@ -398,7 +391,7 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
             }
 
             listExpandable.setGroupIndicator(getResources().getDrawable(android.R.color.transparent));
-            ExpandListAdapter expandListAdapter = new ExpandListAdapter(getActivity(), elements);
+            ExpandListAdapter expandListAdapter = new ExpandListAdapter(getActivity(), elements, page);
 
             listExpandable.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
                 @Override
@@ -407,6 +400,21 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
                     Item selected = new Item(e.getTrackName(), e.getpreviewUrl(), e.getArtworkUrl100(), e.getArtistName(), e.getCollectionName(), e.getRegisterTime());
                     selected.save();
                     startActivity(new Intent(getActivity(), PlayerActivity.class));
+                    return false;
+                }
+            });
+
+            listExpandable.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+                @Override
+                public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+                    if (!elements.get(groupPosition).isParent()) {
+
+
+                        Element e = elements.get(groupPosition);
+                        Item selected = new Item(e.getTrackName(), e.getpreviewUrl(), e.getArtworkUrl100(), e.getArtistName(), e.getCollectionName(), e.getRegisterTime());
+                        selected.save();
+                        startActivity(new Intent(getActivity(), PlayerActivity.class));
+                    }
                     return false;
                 }
             });

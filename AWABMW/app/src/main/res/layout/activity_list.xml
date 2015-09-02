@@ -16,6 +16,7 @@
         android:id="@+id/search_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+
         android:background="#ffffff"
         android:paddingTop="12dp"
         android:paddingBottom="7dp"
@@ -49,6 +50,7 @@
                 android:layout_height="2dp"
                 android:layout_width="match_parent"/>
         </LinearLayout>
+
 
     </LinearLayout>
 

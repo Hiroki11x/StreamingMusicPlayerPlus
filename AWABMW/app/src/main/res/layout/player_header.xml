@@ -93,7 +93,8 @@
         android:layout_gravity="left|bottom"
         android:layout_marginLeft="72dp"
         android:background="@drawable/prev_button_bg"
-        android:layout_marginBottom="51dp" />
+        android:layout_marginBottom="51dp"
+        android:onClick="prevTrackClicked" />
 
     <ImageButton
         android:layout_width="30dp"

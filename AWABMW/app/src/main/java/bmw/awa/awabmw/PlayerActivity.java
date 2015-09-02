@@ -8,12 +8,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
@@ -32,19 +30,8 @@ import com.github.ksoichiro.android.observablescrollview.ObservableListView;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
 import com.github.ksoichiro.android.observablescrollview.ScrollState;
 import com.loopj.android.image.SmartImageView;
+import com.vstechlab.easyfonts.EasyFonts;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -73,6 +60,7 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
     TextView nowPlaying,centerBar,rightText;
     private ListAdapter mAdapter;
     private boolean flag=true;
+    private static volatile long nowPlayingId;
     OnItemClickListener listener;
 
 
@@ -117,14 +105,29 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
 
         //notificationからの呼び出し
         if(getIntent().getAction()=="ACTION_STOP_PLAY") {//playpauseが押されたとき
-            Log.d("DEBUG TEST","----------onCreate Intent PLAY PAUSE ----------");
+            Log.d("DEBUG TEST", "----------onCreate Intent PLAY PAUSE ----------");
             subOnCreate(false);
-            nextTrack();
+            centerButtonClicked();
         }else if(getIntent().getAction()=="ACTION_NEXT"){
             Log.d("DEBUG TEST", "----------onCreate Intent NEXT TRACK----------");
+            SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
+            if(timer!=null){//これがないと再生せずに戻った時エラーでる
+                timer.cancel();
+                timer = null;
+            }
+            SharedPreferences.Editor editor = data.edit();
+            editor.putLong("key", data.getLong("key", 0) + 1l);//再生する曲をインクリメントで次へ
+            editor.apply();//Activity存在していないときはitemをSharedPreference保存
             subOnCreate(false);
-            nextTrack();
-        }else{//普通のActivity呼び出し
+            centerButtonClicked();
+            try{
+                mBindService.nextTrackService();//Service#subOnCreateService(true)
+            }catch (RemoteException e){
+                e.printStackTrace();
+            }catch (NullPointerException e){
+                e.printStackTrace();
+            }
+        } else {//普通のActivity呼び出し
             Log.d("DEBUG TEST", "----------onCreate Intent DAFAULT----------");
             subOnCreate(false);
         }
@@ -133,24 +136,18 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
     public void subOnCreate(boolean random){
         handler = new Handler();//Handlerを初期化
 
-        Item item;
+
         if(random){///ItemをランダムにDBから取得する
-            item = new Select().from(Item.class).orderBy("RANDOM()").executeSingle();
+
         }else{//onCreateか実行されるとき,DBのトップから
             Intent intent = new Intent(PlayerActivity.this,MusicService.class);//Serviceをバインドする
             bindService(intent, mConnection, Context.BIND_AUTO_CREATE);//エラー出たけど無視できそう(ServiceConnectionLeaked)
-            item = new Select().from(Item.class).orderBy("id DESC").executeSingle();//
             IntentFilter filter=new IntentFilter("awa");
             registerReceiver(myReceiver, filter);//BroadCastReceiverセットする
         }
-
-        Log.d("DEBUG TEST","Item Id at Activity#subOnCreate: ["+ item.getId() +"]");
         SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = data.edit();
-        editor.putLong("key",item.getId());
-        Log.d("\"key\",item.getId()", "" + item.getId());
-        editor.apply();
-
+        nowPlayingId = data.getLong("key",1 );
+        Item item = new Select().from(Item.class).where("Id = ?", nowPlayingId).executeSingle();
         commonOnCreate(item);
     }
 
@@ -178,15 +175,23 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
         jacketImage.setScaleType(ImageView.ScaleType.FIT_CENTER);//画像を正方形で表示);
 
         nowPlaying = (TextView)MiddleView.findViewById(R.id.now_playing);
+        nowPlaying.setTypeface(EasyFonts.robotoMedium(this));
         centerBar = (TextView)MiddleView.findViewById(R.id.text_bar);
+        nowPlaying.setTypeface(EasyFonts.robotoMedium(this));
         rightText = (TextView)MiddleView.findViewById(R.id.text_right);
+        nowPlaying.setTypeface(EasyFonts.robotoMedium(this));
         titleText = (TextView) MiddleView.findViewById(R.id.track_text_view);//
         titleText.setText(trackName);//トラック名をセット
+        titleText.setTypeface(EasyFonts.robotoMedium(this));
         artistText = (TextView) MiddleView.findViewById(R.id.artist_text_view);
         artistText.setText(artistName);//アーティスト名をセット
-        tryGetMusic(artistName);
+        artistText.setTypeface(EasyFonts.robotoMedium(this));
+//        tryGetMusic(artistName);
+        getItems();
         LeftSideText = (TextView)HeaderView.findViewById(R.id.textlefttime);
+        LeftSideText.setTypeface(EasyFonts.robotoBold(this));
         RightSideText = (TextView)HeaderView.findViewById(R.id.textrighttime);
+        RightSideText.setTypeface(EasyFonts.robotoBold(this));
 
         feedin_btn = new AlphaAnimation( 0, 1 );//(0,1)フェードイン
         feedin_btn.setDuration(500);//表示時間を指定
@@ -280,16 +285,12 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
                             mBindService.getMediaPlayer().start();
                             playButton.setBackground(getResources().getDrawable(R.drawable.pause));
                             playButton.startAnimation(feedin_btn);
-
                         } else if (event.getAction() == MotionEvent.ACTION_DOWN) {
                             RightSideText.setText(maxLength); // 現在の再生位置をセット
                             LeftSideText.setText("...");
                             mBindService.getMediaPlayer().pause();
-
                             playButton.setBackground(getResources().getDrawable(R.drawable.play));
                             playButton.startAnimation(feedout_btn);
-
-
                         }
                     } catch (RemoteException e) {
                         e.printStackTrace();
@@ -345,16 +346,61 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
         if(flag){
             nextTrack();
         }
-
     }
 
     public void nextTrack(){
         if(mBindService!=null) {
             try{
+
+                SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
+                Item maxItem = new Select().from(Item.class).orderBy("id DESC").executeSingle();
+                if(maxItem.getId()<data.getLong("key",0)+1l){
+                    mBindService.getMediaPlayer().seekTo(0);
+                    seekBar.setProgress(0);
+                    return;
+                }//ここまでがDB変なとこ参照しないようにの対策
+
                 if(timer!=null){//これがないと再生せずに戻った時エラーでる
                     timer.cancel();
                     timer = null;
                 }
+
+                SharedPreferences.Editor editor = data.edit();
+                editor.putLong("key", data.getLong("key",0)+1l);//再生する曲をインクリメントで次へ
+                editor.apply();//Activity存在していないときはitemをSharedPreference保存
+                subOnCreate(true);//ランダムに次の曲へ
+                mBindService.nextTrackService();//Service#subOnCreateService(true)
+                afterBinding();
+                centerButtonClicked();
+            }catch (RemoteException e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void prevTrackClicked(View v){//次へボタンが押された時の処理は全てここに
+        if(flag){
+            prevTrack();
+        }
+    }
+
+    public void prevTrack(){
+        if(mBindService!=null) {
+            try{
+                SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
+//                Item maxItem = new Select().from(Item.class).orderBy("id DESC").executeSingle();
+//                if(maxItem.getId()<=data.getLong("key",0)+1l){
+//                    return;
+//                }
+
+                if(timer!=null){//これがないと再生せずに戻った時エラーでる
+                    timer.cancel();
+                    timer = null;
+                }
+
+                SharedPreferences.Editor editor = data.edit();
+                editor.putLong("key", data.getLong("key",1)-1l);//再生する曲をインクリメントで次へ
+                editor.apply();//Activity存在していないときはitemをSharedPreference保存
                 subOnCreate(true);//ランダムに次の曲へ
                 mBindService.nextTrackService();//Service#subOnCreateService(true)
                 afterBinding();
@@ -366,10 +412,7 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
     }
 
     public void onScrollChanged(int scroll_y, boolean var2, boolean var3){
-        //scroll量
-        //
         MiddleView.setTranslationY(4);
-//        HeaderView.setTranslationY(scroll_y*1.2f);
         HeaderView.setTranslationY(scroll_y);
         WindowManager wm = getWindowManager();
         Display disp = wm.getDefaultDisplay();
@@ -394,15 +437,12 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
 
 
     public void onDownMotionEvent(){
-
     }
 
     public void onUpOrCancelMotionEvent(ScrollState var1){
-
     }
 
-    private class ListAdapter extends ArrayAdapter<JSONObject> {//ListAdapterクラスを内部クラスとして定義
-
+    private class ListAdapter extends ArrayAdapter<Item> {//ListAdapterクラスを内部クラスとして定義
         public ListAdapter(Context context, int resource) {//コントラクタでsourceとかはセット
             super(context, resource);
         }
@@ -419,13 +459,13 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
             TextView artistTextView = (TextView) convertView.findViewById(R.id.artist_text_view);
 
             // 表示する行番号のデータを取り出す
-            JSONObject result = getItem(position);//positionにクリックされた要素の番号が渡されている
-
+            Item result = getItem(position);//positionにクリックされた要素の番号が渡されている
             //resultとしてJSONオブジェクトが渡されている状態
-            imageView.setImageUrl(result.optString("artworkUrl100"));
-            trackTextView.setText(result.optString("trackName"));
-            artistTextView.setText(result.optString("artistName"));
-            Log.d("", "call_getView" + System.currentTimeMillis());//getViewが呼ばれていたのか確認
+            imageView.setImageUrl(result.artworkUrl100);
+            trackTextView.setText(result.track_name);
+            trackTextView.setTypeface(EasyFonts.robotoMedium(getApplication()));
+            artistTextView.setText(result.artistName);
+            artistTextView.setTypeface(EasyFonts.robotoMedium(getApplication()));
             return convertView;//ListViewの1要素のViewを返す
         }
     }
@@ -433,107 +473,50 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
     private class OnItemClickListener implements AdapterView.OnItemClickListener {//Item選択された時のリスナクラス
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-
-
-            Log.d("DEBUG GENIUS",position+"");
             //選択したアイテムのオブジェクトをDBに登録
-            JSONObject result = mAdapter.getItem(position);//JSONObject取得
-            Item item = new Item();
-            item.track_name=result.optString("trackName");
-            item.previewUrl=result.optString("previewUrl");
-            item.artworkUrl100=result.optString("artworkUrl100");
-            item.artistName=result.optString("artistName");
-            item.collectionName=result.optString("collectionName");
-            item.registerTime=System.currentTimeMillis();
-            item.save();
+            if(position>1){
+                Item result = mAdapter.getItem(position-2);//Item
 
-            Intent intent = new Intent(PlayerActivity.this, PlayerActivity.class);//PlayerActivityに明示的intent
-            startActivity(intent);//intent開始
-        }
-    }
-
-    public void tryGetMusic(String text){
-        try {
-            // url encode 例. スピッツ > %83X%83s%83b%83c みたいになるらしい
-            text = URLEncoder.encode(text, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            Log.e("", e.getMessage(), e);
-            return ;
-        }
-
-
-        if (!TextUtils.isEmpty(text)) {//EditTextが空列でなければ
-            // iTunes API から取得してくるのでURLを準備
-            //このURLだけ検索ワードから色々ひっかけてくれる
-            String urlString = "https://itunes.apple.com/search?term=" + text + "&country=JP&media=music&lang=ja_jp";
-
-            new AsyncTask<String, Void, JSONObject>() {//AsyncTask実行
-                //1番目はバックグラウンド処理を実行する時にUIスレッド（メインスレッド）から与える引数の型:String
-                //2番目のProgressは進捗状況を表示するonProgressUpdateの引数の型:Void(今回は使わない)
-                //最後のはバックグラウンド処理の後に受け取る型:JSONObject
-
-                @Override
-                protected JSONObject doInBackground(String... params) {//バックグラウンドで行う処理を記述する
-                    HttpURLConnection conn;
-                    try {
-                        //params[0]にはurlStringが入るので、URLから接続を開始
-                        URL url = new URL(params[0]);
-                        conn = (HttpURLConnection) url.openConnection();
-
-                    } catch (MalformedURLException e) {
-                        Log.e("", e.getMessage(), e);
-                        return null;
-                    } catch (IOException e) {
-                        Log.e("", e.getMessage(), e);
-                        return null;
-                    }
-
-                    StringBuilder result = new StringBuilder();
-
-                    //Java7以降のtry-catch-resoureceかな
-                    //検索で引っかかったものが、文字の羅列でくるので、1行ずつresult(StringBuilder)にappend
-                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
-                        String s;
-                        while ((s = reader.readLine()) != null) {
-                            result.append(s);//resultはStringBuilderのこと
+                if(mBindService!=null) {
+                    try{
+                        if(timer!=null){//これがないと再生せずに戻った時エラーでる
+                            timer.cancel();
+                            timer = null;
                         }
-                    } catch (IOException e) {
-                        Log.e("", e.getMessage(), e);
-                        return null;
-                    }
-
-                    try {
-                        return new JSONObject(result.toString());//result(StringBuilder)からJSONObjectを生成してreturn
-                    } catch (JSONException e) {
-                        Log.e("", e.getMessage(), e);
-                        return null;
+                        SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = data.edit();
+                        editor.putLong("key",result.getId());//再生する曲をインクリメントで次へ
+                        editor.apply();//Activity存在していないときはitemをSharedPreference保存
+                        subOnCreate(true);//ランダムに次の曲へ
+                        mBindService.nextTrackService();//Service#subOnCreateService(true)
+                        afterBinding();
+                        centerButtonClicked();
+                    }catch (RemoteException e){
+                        e.printStackTrace();
                     }
                 }
+            }
 
-                @Override
-                protected void onPostExecute(JSONObject jsonObject) {//doInBackground後の処理
-                    Log.d("", jsonObject.toString());
-
-                    mAdapter.clear();//ListVierに突っ込むAdapterを一度クリア
-
-                    JSONArray results = jsonObject.optJSONArray("results");
-                    //results(iTunes APIから取得できる楽曲情報全てをまとめた選択の意味)よりJSONObjectを取得
-                    if (results != null) {
-                        for (int i = 0; i <((results.length()>8)?8:results.length()); i++) {
-                            mAdapter.add(results.optJSONObject(i));//JSONArrayのi番目の要素をAdapterに追加
-
-                        }
-                    }
-                    Log.d("", "end mAdapter.add()" + System.currentTimeMillis());
-                }
-            }.execute(urlString);//AsyncTaskを実行
         }
-
     }
     public  void intentSearch(View v){
         Intent intent = new Intent(PlayerActivity.this,RecommendationActivity.class);
         startActivity(intent);
     }
+
+    public void getItems() {//ListViewに再生待ちの楽曲を突っ込む
+        mAdapter.clear();//ListVierに突っ込むAdapterを一度クリア
+        Item tempItem = new Select().from(Item.class).orderBy("id DESC").executeSingle();
+        long maxId = tempItem.getId();
+        SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
+        long minId = data.getLong("key",0)+1;
+        if(maxId-minId>=8)maxId= (maxId>=minId+8)?minId+8:maxId;//Adapterセットするものは8個までに制限
+        for (int i = (int)minId; i < maxId ; i++) {
+            Item innnerItem = new Select().from(Item.class).where("Id = ?", i).executeSingle();
+            mAdapter.add(innnerItem);//JSONArrayのi番目の要素をAdapterに追加
+        }
+    }
 }
+
 
 

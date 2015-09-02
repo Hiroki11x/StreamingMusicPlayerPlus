@@ -55,7 +55,7 @@
                 android:layout_height="32dip"
                 android:layout_margin="5dip"
                 android:scaleType="center"
-                android:background="@drawable/pause" />
+                android:background="@drawable/pause_white" />
 
             <ImageButton
                 android:id="@+id/btnNext"

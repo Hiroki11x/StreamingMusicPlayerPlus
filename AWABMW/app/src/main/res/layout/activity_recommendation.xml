@@ -23,34 +23,45 @@
             android:background="?attr/colorPrimary"
             android:minHeight="?attr/actionBarSize"
             android:paddingTop="24dp"
+            android:visibility="gone"
             android:theme="@style/ThemeOverlay.AppCompat.ActionBar">
 
         </android.support.v7.widget.Toolbar>
+        
+        <LinearLayout
+            android:id="@+id/linear_tool"
+            android:background="@color/black_50"
+            android:layout_width="match_parent"
+            android:layout_height="56dp">
+            <ImageButton
+                android:id="@+id/tool_back"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginStart="16dp"
+                android:background="@drawable/back" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="56dp"
+                android:textSize="16sp"
+                android:textColor="@android:color/white"
+                android:gravity="center_vertical"
+                android:layout_marginEnd="16dp"
+                android:text="曲を探す"
+                />
+        </LinearLayout>
 
         <android.support.design.widget.TabLayout
             android:id="@+id/tabs"
             android:layout_width="match_parent"
             android:layout_height="72dp"
-            android:layout_below="@id/toolbar"
+            android:layout_below="@id/linear_tool"
             android:background="@color/black_50" />
-
-        <TextView
-            android:id="@+id/txt_description"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_below="@id/tabs"
-            android:background="@color/gray"
-            android:gravity="center_vertical"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:paddingStart="16dp"
-            android:text="aaaaaの他のアルバム"
-            android:textSize="18sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/txt_description"
+            android:layout_below="@id/tabs"
             android:orientation="vertical">
 
             <android.support.v4.view.ViewPager
@@ -59,12 +70,6 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:background="@android:color/black" />
-
-            <TextView
-                android:id="@+id/space"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_alignParentBottom="true" />
 
         </LinearLayout>
 

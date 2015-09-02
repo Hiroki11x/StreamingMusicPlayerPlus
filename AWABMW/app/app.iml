@@ -96,10 +96,10 @@
     <orderEntry type="jdk" jdkName="Android API 23 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="material-menu-1.5.4" level="project" />
-    <orderEntry type="library" exported="" name="easyfonts-1.0.0" level="project" />
     <orderEntry type="library" exported="" name="butterknife-7.0.1" level="project" />
-    <orderEntry type="library" exported="" name="android-smart-image-view-1.0.0" level="project" />
     <orderEntry type="library" exported="" name="material-menu-toolbar-1.5.4" level="project" />
+    <orderEntry type="library" exported="" name="easyfonts-1.0.0" level="project" />
+    <orderEntry type="library" exported="" name="android-smart-image-view-1.0.0" level="project" />
     <orderEntry type="library" exported="" name="picasso-2.5.2" level="project" />
     <orderEntry type="library" exported="" name="activeandroid-3.1-beta" level="project" />
     <orderEntry type="library" exported="" name="support-v4-23.0.0" level="project" />

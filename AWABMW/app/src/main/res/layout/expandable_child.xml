@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="48dp"
-    android:background="@android:color/white">
+    android:background="@color/gray">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,38 +14,42 @@
             android:layout_height="48dp"
             android:gravity="center_vertical"
             android:paddingEnd="4dp"
-            android:layout_marginStart="16dp"
+            android:paddingStart="16dp"
             android:src="@mipmap/ic_launcher" />
 
         <TextView
             android:id="@+id/child_title"
             android:layout_width="0dp"
             android:layout_height="48dp"
-            android:layout_weight="4"
+            android:layout_weight="3.5"
             android:paddingStart="4dp"
             android:paddingEnd="4dp"
             android:textSize="18sp"
             android:ellipsize="end"
             android:gravity="center_vertical"
             android:maxLines="1"
-            android:text="Waiting for love" />
+            android:text="aaaaaaaaaaaaaaaaaaaaa" />
 
         <TextView
+            android:id="@+id/child_2nd"
             android:layout_width="0dp"
             android:layout_height="48dp"
-            android:layout_weight="1.5"
+            android:layout_weight="2"
             android:ellipsize="end"
             android:gravity="center_vertical|end"
             android:maxLines="1"
-            android:text="120BPM" />
+            android:text="aaaaaaaaaaaaaaaaaaaaa" />
 
-        <ImageView
+        <ImageButton
             android:id="@+id/child_add"
-            android:layout_width="56dp"
-            android:layout_height="48dp"
-            android:gravity="center_vertical"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:layout_marginStart="6dp"
             android:layout_marginEnd="16dp"
-            android:src="@drawable/adlistxxhdpi" />
+            android:padding="6dp"
+            android:src="@drawable/selector_pressed"
+            android:background="@drawable/add" />
 
     </LinearLayout>
 

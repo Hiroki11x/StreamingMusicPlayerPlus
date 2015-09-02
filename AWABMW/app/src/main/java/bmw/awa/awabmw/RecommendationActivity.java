@@ -27,6 +27,7 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.ExpandableListView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -41,6 +42,7 @@ import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
@@ -63,17 +65,13 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
     private DrawerAdapter mAdapter;
     private boolean isDrawerOpened;
 
+    @Bind(R.id.tool_back)ImageButton toolBack;
+
     private String[] factor = new String[]{"tempo", "album", "artist"};
     private Drawable[] iconSelector;
 
     //unimplement
     String playingArtist, playingTrack;
-
-    public void checkNavigationBarVisible() {
-        if (ViewConfiguration.get(this).hasPermanentMenuKey()) {
-            findViewById(R.id.space).setVisibility(View.GONE);
-        }
-    }
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -89,7 +87,7 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
 
         iconSelector = new Drawable[]
                 {
-                        getResources().getDrawable(R.drawable.selector_tempo),
+                        getResources().getDrawable(R.drawable.selector_genre),
                         getResources().getDrawable(R.drawable.selector_artist),
                         getResources().getDrawable(R.drawable.selector_album)
                 };
@@ -131,8 +129,6 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
                 return false;
             }
         });
-
-        checkNavigationBarVisible();
 
         /**
          * DrawerLayout
@@ -261,6 +257,11 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
         }
     }
 
+    @OnClick(R.id.tool_back)
+    public void onClickBack(){
+        finish();
+    }
+
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
@@ -350,7 +351,7 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             int page = getArguments().getInt("page", 0);
             View view = inflater.inflate(R.layout.fragment_test, container, false);
-//            ((TextView) view.findViewById(R.id.page_text)).setText("Page " + page);
+            ((TextView) view.findViewById(R.id.ftxt_description)).setText("Page " + page);
             listExpandable = (ExpandableListView) view.findViewById(R.id.list_expandable);
 
             /**
@@ -361,7 +362,14 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
             try {
                 switch (page) {
                     case 1:
+                        ((TextView) view.findViewById(R.id.ftxt_description)).setText("同じジャンルの曲");
+                        for (int i = 0; i < 20; i++) {
+                            Element x = (new Element("page" + page + ": " + i + "th element", Item.getRandom()));
+                            elements.add(x);
+                        }
+                        break;
                     case 3:
+                        ((TextView) view.findViewById(R.id.ftxt_description)).setText("他のアルバムの曲");
                         for (int i = 0; i < 20; i++) {
                             Element x = (new Element("page" + page + ": " + i + "th element", Item.getRandom()));
                             elements.add(x);
@@ -369,6 +377,7 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
 
                         break;
                     case 2:
+                        ((TextView) view.findViewById(R.id.ftxt_description)).setText("似たアーティストの曲");
                         Item ii = Item.getRandom();
                         List<Item> list = Item.getByAlbum(ii.collectionName, ii.artistName);
                         Element tmp = new Element(Item.getByAlbum(ii.collectionName, ii.artistName).get(0));
@@ -396,10 +405,10 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
             listExpandable.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
                 @Override
                 public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-                    Element e = elements.get(groupPosition).getChildren().get(childPosition);
-                    Item selected = new Item(e.getTrackName(), e.getpreviewUrl(), e.getArtworkUrl100(), e.getArtistName(), e.getCollectionName(), e.getRegisterTime());
-                    selected.save();
-                    startActivity(new Intent(getActivity(), PlayerActivity.class));
+//                    Element e = elements.get(groupPosition).getChildren().get(childPosition);
+//                    Item selected = new Item(e.getTrackName(), e.getpreviewUrl(), e.getArtworkUrl100(), e.getArtistName(), e.getCollectionName(), e.getRegisterTime());
+//                    selected.save();
+//                    startActivity(new Intent(getActivity(), PlayerActivity.class));
                     return false;
                 }
             });
@@ -408,12 +417,10 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
                 @Override
                 public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
                     if (!elements.get(groupPosition).isParent()) {
-
-
-                        Element e = elements.get(groupPosition);
-                        Item selected = new Item(e.getTrackName(), e.getpreviewUrl(), e.getArtworkUrl100(), e.getArtistName(), e.getCollectionName(), e.getRegisterTime());
-                        selected.save();
-                        startActivity(new Intent(getActivity(), PlayerActivity.class));
+//                        Element e = elements.get(groupPosition);
+//                        Item selected = new Item(e.getTrackName(), e.getpreviewUrl(), e.getArtworkUrl100(), e.getArtistName(), e.getCollectionName(), e.getRegisterTime());
+//                        selected.save();
+//                        startActivity(new Intent(getActivity(), PlayerActivity.class));
                     }
                     return false;
                 }

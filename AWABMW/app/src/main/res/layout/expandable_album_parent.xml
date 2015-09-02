@@ -6,6 +6,7 @@
     android:layout_height="72dp">
 
     <com.loopj.android.image.SmartImageView
+        android:id="@+id/parent_jacket"
         android:layout_width="56dp"
         android:layout_height="72dp"
         android:layout_marginStart="16dp"

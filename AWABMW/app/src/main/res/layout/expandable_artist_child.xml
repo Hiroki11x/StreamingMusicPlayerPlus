@@ -39,13 +39,16 @@
             android:maxLines="1"
             android:text="aaaaaaaaaaaaaaaaaaaaa" />
 
-        <ImageView
+        <ImageButton
             android:id="@+id/child_add"
-            android:layout_width="56dp"
-            android:layout_height="48dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:layout_marginStart="6dp"
             android:layout_marginEnd="16dp"
-            android:gravity="center"
-            android:src="@drawable/add" />
+            android:padding="6dp"
+            android:src="@drawable/selector_pressed"
+            android:background="@drawable/add" />
 
     </LinearLayout>
 </RelativeLayout>

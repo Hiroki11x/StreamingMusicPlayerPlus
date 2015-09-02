@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="10dp"
-    android:background="#eceff1">
+    android:background="#ffffff">
 
     <com.loopj.android.image.SmartImageView
         android:id="@+id/image_view"

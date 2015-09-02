@@ -60,6 +60,7 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
     TextView nowPlaying,centerBar,rightText;
     private ListAdapter mAdapter;
     private boolean flag=true;
+    private boolean isNotification=false;
     private static volatile long nowPlayingId;
     OnItemClickListener listener;
 
@@ -78,8 +79,10 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
         //3 Service接続後、Binderが確立したタイミングで呼び出される。
         public void onServiceConnected(ComponentName className, IBinder service) {// Serviceとの接続確立時に呼び出される。
             mBindService = ((MusicService.LocalBinder)service).getService();//必要であればmBindServiceを使ってバインドしたServiceへの制御を行う
-            afterBinding();
-            centerButtonClicked();//この段階で再生開始
+//            if(!isNotification){
+                afterBinding();
+                centerButtonClicked();//この段階で再生開始
+//            }
         }
         public void onServiceDisconnected(ComponentName className) {
             mBindService = null; // Serviceとの切断時に呼び出される。
@@ -106,18 +109,31 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
         //notificationからの呼び出し
         if(getIntent().getAction()=="ACTION_STOP_PLAY") {//playpauseが押されたとき
             Log.d("DEBUG TEST", "----------onCreate Intent PLAY PAUSE ----------");
+//            isNotification=true;
             subOnCreate(false);
-            centerButtonClicked();
+//            super.onRestart();
+//            try{
+//                seekBarPrepare(true);
+//            }catch (NullPointerException e){
+//                e.printStackTrace();
+//            }
+//            startSeekBarAnimation();
         }else if(getIntent().getAction()=="ACTION_NEXT"){
             Log.d("DEBUG TEST", "----------onCreate Intent NEXT TRACK----------");
-            SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
             if(timer!=null){//これがないと再生せずに戻った時エラーでる
                 timer.cancel();
                 timer = null;
             }
+            SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = data.edit();
-            editor.putLong("key", data.getLong("key", 0) + 1l);//再生する曲をインクリメントで次へ
-            editor.apply();//Activity存在していないときはitemをSharedPreference保存
+            Item maxItem = new Select().from(Item.class).orderBy("id DESC").executeSingle();
+            if(maxItem.getId()<data.getLong("key",0)+1l){//参照しすぎないように調整
+//                editor.putLong("key", data.getLong("key", 0));//再生する曲をインクリメントで次へ
+//                editor.apply();//Activity存在していないときはitemをSharedPreference保存
+            }else {//ここまでがDB変なとこ参照しないようにの対策
+                editor.putLong("key", data.getLong("key", 0) + 1l);//再生する曲をインクリメントで次へ
+                editor.apply();//Activity存在していないときはitemをSharedPreference保存
+            }
             subOnCreate(false);
             centerButtonClicked();
             try{
@@ -135,10 +151,7 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
 
     public void subOnCreate(boolean random){
         handler = new Handler();//Handlerを初期化
-
-
         if(random){///ItemをランダムにDBから取得する
-
         }else{//onCreateか実行されるとき,DBのトップから
             Intent intent = new Intent(PlayerActivity.this,MusicService.class);//Serviceをバインドする
             bindService(intent, mConnection, Context.BIND_AUTO_CREATE);//エラー出たけど無視できそう(ServiceConnectionLeaked)
@@ -169,7 +182,7 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
         prevButton = (ImageButton)HeaderView.findViewById(R.id.previous_track);
         nextButton = (ImageButton)HeaderView.findViewById(R.id.next_track);
         jacketImage = (SmartImageView) HeaderView.findViewById(R.id.imageView);//Jacket画像を
-        seekBar = (CircularSeekBar) HeaderView.findViewById(R.id.seek_bar);
+        seekBar = (CircularSeekBar)HeaderView.findViewById(R.id.seek_bar);
         seekBar.setAlpha(0.9f);
         jacketImage.setImageUrl(imageURI);
         jacketImage.setScaleType(ImageView.ScaleType.FIT_CENTER);//画像を正方形で表示);
@@ -261,6 +274,8 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
                         e.printStackTrace();
                     }catch (IllegalStateException e){
                         e.printStackTrace();
+                    }catch (NullPointerException e){
+                        e.printStackTrace();
                     }
                 }
             }, 0, 500); // 1000ミリ秒間隔で実行 timerTaskを実行
@@ -268,14 +283,13 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
     }
 
     public void seekBarPrepare(boolean isRestart) {//seekBarの再生準備 afterbinding
-
         try{
+            seekBar.setMaxProgress(mBindService.getMediaPlayer().getDuration());
             if(isRestart){
                 seekBar.setProgress(mBindService.getMediaPlayer().getCurrentPosition());
             }else{
                 seekBar.setProgress(0);
             }
-            seekBar.setMaxProgress(mBindService.getMediaPlayer().getDuration());
             maxLength = mBindService.calcDuration(true);//maxlengthに全体時間を表示
         }catch (RemoteException e) {
             e.printStackTrace();
@@ -329,6 +343,7 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
             timer.cancel();
             timer = null;
         }
+
     }
 
     @Override
@@ -358,9 +373,9 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
     }
 
     public void nextTrack(){
+//        isNotification=false;
         if(mBindService!=null) {
             try{
-
                 SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
                 Item maxItem = new Select().from(Item.class).orderBy("id DESC").executeSingle();
                 if(maxItem.getId()<data.getLong("key",0)+1l){
@@ -408,6 +423,7 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
 
 
     public void prevTrack(){
+//        isNotification=false;
         if(mBindService!=null) {
             try{
                 SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);

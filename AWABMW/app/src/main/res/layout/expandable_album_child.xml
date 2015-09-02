@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:background="@color/gray">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp">
+
+        <com.loopj.android.image.SmartImageView
+            android:id="@+id/child_jacket"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:paddingEnd="4dp"
+            android:paddingStart="16dp"
+            android:src="@mipmap/ic_launcher" />
+
+        <TextView
+            android:id="@+id/child_title"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="3.5"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:textSize="18sp"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            android:text="aaaaaaaaaaaaaaaaaaaaa" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="2"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            android:text="aaaaaaaaaaaaaaaaaaaaa" />
+
+        <ImageButton
+            android:id="@+id/child_add"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:layout_marginEnd="16dp"
+            android:padding="6dp"
+            android:src="@drawable/selector_pressed"
+            android:background="@drawable/add" />
+
+    </LinearLayout>
+
+</RelativeLayout>

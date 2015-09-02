@@ -8,22 +8,43 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.activeandroid.query.Select;
+import com.github.ksoichiro.android.observablescrollview.ObservableListView;
+import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
+import com.github.ksoichiro.android.observablescrollview.ScrollState;
 import com.loopj.android.image.SmartImageView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -34,20 +55,26 @@ import java.util.TimerTask;
  *
  * MusicServiceClassにライフサイクルをまとめてあります。
  */
-public class PlayerActivity extends Activity{//曲を選択した時のアクティビティ
+public class PlayerActivity extends Activity implements ObservableScrollViewCallbacks{//曲を選択した時のアクティビティ
 
     private MusicService mBindService;
-    ImageButton playButton;
+    ImageButton playButton,prevButton,nextButton;
     SmartImageView jacketImage;
     TextView titleText, artistText;
     CircularSeekBar seekBar;
-    SeekBar intentSeekBar;
     Timer timer;
     Handler handler;
     TextView LeftSideText,RightSideText;//現在の再生位置を表示
     String maxLength,nowLength;//曲の現在時間を出すところ(全体時間と現在時間)
     AlphaAnimation feedin_btn;
     AlphaAnimation feedout_btn;
+    ObservableListView observallistView;
+    View HeaderView,MiddleView;
+    TextView nowPlaying,centerBar,rightText;
+    private ListAdapter mAdapter;
+    private boolean flag=true;
+    OnItemClickListener listener;
+
 
     //-----------------このReceiverはActivity起動時にしか使えない------------------------
     public BroadcastReceiver myReceiver = new BroadcastReceiver() {//Serviceからの受信機
@@ -76,34 +103,27 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
         super.onCreate(savedInstanceState);
         setContentView(R.layout.player_activity);
 
+        mAdapter = new ListAdapter(this, R.layout.player_list_item);//list_itemは画像と文字があるリストを選択
+        observallistView = (ObservableListView)findViewById(R.id.listView);
+        observallistView.setScrollViewCallbacks(this);
+        HeaderView = getLayoutInflater().inflate(R.layout.player_header,null,false);
+        MiddleView = getLayoutInflater().inflate(R.layout.player_middle_header,null,false);
+
+        observallistView.addHeaderView(HeaderView);
+        observallistView.addHeaderView(MiddleView);
+        observallistView.setAdapter(mAdapter);
+        listener = new OnItemClickListener();
+        observallistView.setOnItemClickListener(listener);
+
         //notificationからの呼び出し
         if(getIntent().getAction()=="ACTION_STOP_PLAY") {//playpauseが押されたとき
             Log.d("DEBUG TEST","----------onCreate Intent PLAY PAUSE ----------");
-
-            /*
-            handler = new Handler();//Handlerを初期化
-
-            Intent intent = new Intent(PlayerActivity.this, MusicService.class);//Serviceをバインドする
-            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);//エラー出たけど無視できそう(ServiceConnectionLeaked)
-
-            SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);//現在再生されている曲を取得
-            long keyId = data.getLong("key", 1);
-            Item item = new Select().from(Item.class).where("Id = ?", keyId).executeSingle();
-            commonOnCreate(item);
-            Log.d("DEBUG TEST", "Item Id at Activity#onCreate: [" + keyId + "] from Notification");
-            IntentFilter filter=new IntentFilter("awa");
-            registerReceiver(myReceiver, filter);//BroadCastReceiverセットする
-            mBindService.isNotif=true;
-            */
-
             subOnCreate(false);
             nextTrack();
         }else if(getIntent().getAction()=="ACTION_NEXT"){
             Log.d("DEBUG TEST", "----------onCreate Intent NEXT TRACK----------");
             subOnCreate(false);
             nextTrack();
-//            centerButtonClicked();
-
         }else{//普通のActivity呼び出し
             Log.d("DEBUG TEST", "----------onCreate Intent DAFAULT----------");
             subOnCreate(false);
@@ -141,16 +161,32 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
         String artistName =item.artistName;
 
         //DataBaseから取得した情報をもとにViewにセットしていく
-        playButton = (ImageButton) findViewById(R.id.imageButton);//再生ボタンを関連付け
-        jacketImage = (SmartImageView) findViewById(R.id.imageView);//Jacket画像を
+        playButton = (ImageButton) HeaderView.findViewById(R.id.start);//再生ボタンを関連付け
+        playButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(flag)start();
+
+            }
+        });
+        prevButton = (ImageButton)HeaderView.findViewById(R.id.previous_track);
+        nextButton = (ImageButton)HeaderView.findViewById(R.id.next_track);
+        jacketImage = (SmartImageView) HeaderView.findViewById(R.id.imageView);//Jacket画像を
+        seekBar = (CircularSeekBar) HeaderView.findViewById(R.id.seek_bar);
+        seekBar.setAlpha(0.9f);
         jacketImage.setImageUrl(imageURI);
-        jacketImage.setScaleType(ImageView.ScaleType.FIT_CENTER);//画像を正方形で表示
-        titleText = (TextView) findViewById(R.id.textView2);//
+        jacketImage.setScaleType(ImageView.ScaleType.FIT_CENTER);//画像を正方形で表示);
+
+        nowPlaying = (TextView)MiddleView.findViewById(R.id.now_playing);
+        centerBar = (TextView)MiddleView.findViewById(R.id.text_bar);
+        rightText = (TextView)MiddleView.findViewById(R.id.text_right);
+        titleText = (TextView) MiddleView.findViewById(R.id.track_text_view);//
         titleText.setText(trackName);//トラック名をセット
-        artistText = (TextView) findViewById(R.id.textView);
+        artistText = (TextView) MiddleView.findViewById(R.id.artist_text_view);
         artistText.setText(artistName);//アーティスト名をセット
-        LeftSideText = (TextView)findViewById(R.id.textlefttime);
-        RightSideText = (TextView)findViewById(R.id.textrighttime);
+        tryGetMusic(artistName);
+        LeftSideText = (TextView)HeaderView.findViewById(R.id.textlefttime);
+        RightSideText = (TextView)HeaderView.findViewById(R.id.textrighttime);
 
         feedin_btn = new AlphaAnimation( 0, 1 );//(0,1)フェードイン
         feedin_btn.setDuration(500);//表示時間を指定
@@ -160,39 +196,12 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
         feedout_btn.setDuration(500);//表示時間を指定
         feedout_btn.setFillAfter(true);//もとに戻らない
 
-        intentSeekBar = (SeekBar)findViewById(R.id.seekBar);
-        intentSeekBar.setProgress(0);
-        intentSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-
-            int firstProgress;
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                firstProgress = seekBar.getProgress();
-            }
-
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                if (firstProgress < 50) {
-                    seekBar.setProgress(100);
-                    Intent intent = new Intent(PlayerActivity.this,RecommendationActivity.class);
-                    startActivity(intent);
-                }else{
-                    seekBar.setProgress(0);
-                }
-            }
-        });
         mBindService.isActivityExist = true;
         Log.d("DEBUG TEST", "commonOnCreate isActivity:" + mBindService.isActivityExist);
-
     }
 
 
-    public void start(View v) {//再生&停止ボタンが押された時の処理
+    public void start() {//再生&停止ボタンが押された時の処理
         centerButtonClicked();//再生ボタンが押された処理をサブルーチン化
     }
 
@@ -201,11 +210,13 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
             try {
                 mBindService.startOrStop();//再生もしくは停止
                 if(mBindService.getMediaPlayer().isPlaying()){
-                    playButton.setBackground(getResources().getDrawable(R.drawable.play));
-                    playButton.startAnimation(feedout_btn);
-                }else{
                     playButton.setBackground(getResources().getDrawable(R.drawable.pause));
                     playButton.startAnimation(feedout_btn);
+                    playButton.startAnimation(feedin_btn);
+                }else{
+                    playButton.setBackground(getResources().getDrawable(R.drawable.play));
+                    playButton.startAnimation(feedout_btn);
+                    playButton.startAnimation(feedin_btn);
                 }
                 if (timer == null) { // timerの多重起動を防ぐ
                     timer = new Timer();
@@ -237,7 +248,7 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
                                 e.printStackTrace();
                             }
                         }
-                    }, 0, 1000); // 1000ミリ秒間隔で実行 timerTaskを実行
+                    }, 0, 500); // 1000ミリ秒間隔で実行 timerTaskを実行
                 }
             }catch (RemoteException e) {
                 e.printStackTrace();
@@ -247,20 +258,7 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
         }
     }
 
-    /*リピートボタンを実装する際はこのコメントアウトを外す
-    public void repeat(View v) {
-        if (mBindService != null) {
-            try{
-                mBindService.setLoopStateService();
-            }catch (RemoteException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    */
-
     public void seekBarPrepare() {//seekBarの再生準備 afterbinding
-        seekBar = (CircularSeekBar) findViewById(R.id.seek_bar);
         seekBar.setProgress(0);
         try{
             seekBar.setMaxProgress(mBindService.getMediaPlayer().getDuration());
@@ -272,7 +270,7 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 v.onTouchEvent(event);//superと同じような役割(これで、シークバーのトラックの処理が可能)
-                if (mBindService != null) {
+                if (mBindService != null && flag) {
                     try {
                         if (event.getAction() == MotionEvent.ACTION_UP) {
                             RightSideText.setText(maxLength); // 現在の再生位置をセット
@@ -280,15 +278,18 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
                             int progress = seekBar.getProgress();
                             mBindService.getMediaPlayer().seekTo(progress);
                             mBindService.getMediaPlayer().start();
-                            playButton.setBackground(getResources().getDrawable(R.drawable.play));
-                            playButton.setAnimation(feedin_btn);
-                            playButton.startAnimation(feedout_btn);
+                            playButton.setBackground(getResources().getDrawable(R.drawable.pause));
+                            playButton.startAnimation(feedin_btn);
+
                         } else if (event.getAction() == MotionEvent.ACTION_DOWN) {
                             RightSideText.setText(maxLength); // 現在の再生位置をセット
                             LeftSideText.setText("...");
                             mBindService.getMediaPlayer().pause();
-                            playButton.setBackground(getResources().getDrawable(R.drawable.pause));
-                            playButton.setAnimation(feedin_btn);
+
+                            playButton.setBackground(getResources().getDrawable(R.drawable.play));
+                            playButton.startAnimation(feedout_btn);
+
+
                         }
                     } catch (RemoteException e) {
                         e.printStackTrace();
@@ -337,11 +338,14 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
         if(myReceiver!=null) {
             unregisterReceiver(myReceiver);
         }
-        Log.d("DEBUG TEST","onDestroy isActivity:"+mBindService.isActivityExist);
+        Log.d("DEBUG TEST", "onDestroy isActivity:" + mBindService.isActivityExist);
     }
 
     public void nextTrackClicked(View v){//次へボタンが押された時の処理は全てここに
-        nextTrack();
+        if(flag){
+            nextTrack();
+        }
+
     }
 
     public void nextTrack(){
@@ -361,6 +365,175 @@ public class PlayerActivity extends Activity{//曲を選択した時のアクテ
         }
     }
 
+    public void onScrollChanged(int scroll_y, boolean var2, boolean var3){
+        //scroll量
+        //
+        MiddleView.setTranslationY(4);
+//        HeaderView.setTranslationY(scroll_y*1.2f);
+        HeaderView.setTranslationY(scroll_y);
+        WindowManager wm = getWindowManager();
+        Display disp = wm.getDefaultDisplay();
+        float percent = scroll_y/(float)disp.getWidth();
+        jacketImage.setAlpha(1.5f - percent);
+        jacketImage.setScaleX(1.0f + percent);
+        jacketImage.setScaleY(1.0f + percent);
+        if(scroll_y>365){
+            nowPlaying.setText("now playing " +nowLength);
+            centerBar.setText(" | ");
+            rightText.setText(maxLength);
+            flag = false;
+        } else {
+            flag =true;
+            playButton.setAlpha(1.0f-percent*4);
+            seekBar.setAlpha(0.9f-percent*4);
+            nowPlaying.setText("now playing");
+            centerBar.setText("");
+            rightText.setText("");
+        }
+    }
+
+
+    public void onDownMotionEvent(){
+
+    }
+
+    public void onUpOrCancelMotionEvent(ScrollState var1){
+
+    }
+
+    private class ListAdapter extends ArrayAdapter<JSONObject> {//ListAdapterクラスを内部クラスとして定義
+
+        public ListAdapter(Context context, int resource) {//コントラクタでsourceとかはセット
+            super(context, resource);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                // 再利用可能なViewがない場合は作る(ListViewが下まで行っちゃった時)
+                convertView = getLayoutInflater().inflate(R.layout.player_list_item, null);
+            }
+            //ImageVieだと、URIから画像セットがイマイチうまくいかないのでSmartImageViewを使用
+            SmartImageView imageView = (SmartImageView) convertView.findViewById(R.id.image_view);
+            TextView trackTextView = (TextView) convertView.findViewById(R.id.track_text_view);
+            TextView artistTextView = (TextView) convertView.findViewById(R.id.artist_text_view);
+
+            // 表示する行番号のデータを取り出す
+            JSONObject result = getItem(position);//positionにクリックされた要素の番号が渡されている
+
+            //resultとしてJSONオブジェクトが渡されている状態
+            imageView.setImageUrl(result.optString("artworkUrl100"));
+            trackTextView.setText(result.optString("trackName"));
+            artistTextView.setText(result.optString("artistName"));
+            Log.d("", "call_getView" + System.currentTimeMillis());//getViewが呼ばれていたのか確認
+            return convertView;//ListViewの1要素のViewを返す
+        }
+    }
+
+    private class OnItemClickListener implements AdapterView.OnItemClickListener {//Item選択された時のリスナクラス
+        @Override
+        public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+
+
+            Log.d("DEBUG GENIUS",position+"");
+            //選択したアイテムのオブジェクトをDBに登録
+            JSONObject result = mAdapter.getItem(position);//JSONObject取得
+            Item item = new Item();
+            item.track_name=result.optString("trackName");
+            item.previewUrl=result.optString("previewUrl");
+            item.artworkUrl100=result.optString("artworkUrl100");
+            item.artistName=result.optString("artistName");
+            item.collectionName=result.optString("collectionName");
+            item.registerTime=System.currentTimeMillis();
+            item.save();
+
+            Intent intent = new Intent(PlayerActivity.this, PlayerActivity.class);//PlayerActivityに明示的intent
+            startActivity(intent);//intent開始
+        }
+    }
+
+    public void tryGetMusic(String text){
+        try {
+            // url encode 例. スピッツ > %83X%83s%83b%83c みたいになるらしい
+            text = URLEncoder.encode(text, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            Log.e("", e.getMessage(), e);
+            return ;
+        }
+
+
+        if (!TextUtils.isEmpty(text)) {//EditTextが空列でなければ
+            // iTunes API から取得してくるのでURLを準備
+            //このURLだけ検索ワードから色々ひっかけてくれる
+            String urlString = "https://itunes.apple.com/search?term=" + text + "&country=JP&media=music&lang=ja_jp";
+
+            new AsyncTask<String, Void, JSONObject>() {//AsyncTask実行
+                //1番目はバックグラウンド処理を実行する時にUIスレッド（メインスレッド）から与える引数の型:String
+                //2番目のProgressは進捗状況を表示するonProgressUpdateの引数の型:Void(今回は使わない)
+                //最後のはバックグラウンド処理の後に受け取る型:JSONObject
+
+                @Override
+                protected JSONObject doInBackground(String... params) {//バックグラウンドで行う処理を記述する
+                    HttpURLConnection conn;
+                    try {
+                        //params[0]にはurlStringが入るので、URLから接続を開始
+                        URL url = new URL(params[0]);
+                        conn = (HttpURLConnection) url.openConnection();
+
+                    } catch (MalformedURLException e) {
+                        Log.e("", e.getMessage(), e);
+                        return null;
+                    } catch (IOException e) {
+                        Log.e("", e.getMessage(), e);
+                        return null;
+                    }
+
+                    StringBuilder result = new StringBuilder();
+
+                    //Java7以降のtry-catch-resoureceかな
+                    //検索で引っかかったものが、文字の羅列でくるので、1行ずつresult(StringBuilder)にappend
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                        String s;
+                        while ((s = reader.readLine()) != null) {
+                            result.append(s);//resultはStringBuilderのこと
+                        }
+                    } catch (IOException e) {
+                        Log.e("", e.getMessage(), e);
+                        return null;
+                    }
+
+                    try {
+                        return new JSONObject(result.toString());//result(StringBuilder)からJSONObjectを生成してreturn
+                    } catch (JSONException e) {
+                        Log.e("", e.getMessage(), e);
+                        return null;
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(JSONObject jsonObject) {//doInBackground後の処理
+                    Log.d("", jsonObject.toString());
+
+                    mAdapter.clear();//ListVierに突っ込むAdapterを一度クリア
+
+                    JSONArray results = jsonObject.optJSONArray("results");
+                    //results(iTunes APIから取得できる楽曲情報全てをまとめた選択の意味)よりJSONObjectを取得
+                    if (results != null) {
+                        for (int i = 0; i <((results.length()>8)?8:results.length()); i++) {
+                            mAdapter.add(results.optJSONObject(i));//JSONArrayのi番目の要素をAdapterに追加
+
+                        }
+                    }
+                    Log.d("", "end mAdapter.add()" + System.currentTimeMillis());
+                }
+            }.execute(urlString);//AsyncTaskを実行
+        }
+
+    }
+    public  void intentSearch(View v){
+        Intent intent = new Intent(PlayerActivity.this,RecommendationActivity.class);
+        startActivity(intent);
+    }
 }
 
 

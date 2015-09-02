@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#11ffffff">
+
+
+    <FrameLayout
+        android:layout_width="328dp"
+        android:layout_height="328dp"
+        android:layout_weight="7"
+        android:background="@drawable/white_circle"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/frameLayout"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="100dp">
+
+
+        <bmw.awa.awabmw.CircularSeekBar
+            android:layout_width="237dp"
+            android:layout_height="237dp"
+            android:id="@+id/seek_bar"
+            android:layout_gravity="center"
+            android:padding="50dp" />
+
+        <ImageButton
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:id="@+id/imageButton2"
+            android:layout_gravity="left|center_vertical"
+            android:layout_marginLeft="15dp"
+            android:background="@drawable/skip_previous" />
+
+        <ImageButton
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:id="@+id/imageButton3"
+            android:layout_gravity="center_vertical|right"
+            android:layout_marginRight="15dp"
+            android:background="@drawable/skip_next"
+            android:onClick="nextTrackClicked" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:id="@+id/textrighttime"
+            android:textSize="14dp"
+            android:textColor="#455a64"
+            android:layout_gravity="center_horizontal|top"
+            android:layout_marginTop="28dp"
+            android:layout_marginLeft="22dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="|"
+            android:id="@+id/textcenterBar"
+            android:textSize="14dp"
+            android:textColor="#eceff1"
+            android:layout_gravity="center_horizontal|top"
+            android:layout_marginTop="28dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:id="@+id/textlefttime"
+            android:textSize="14dp"
+            android:textColor="#ff7043"
+            android:layout_gravity="center_horizontal|top"
+            android:layout_marginTop="28dp"
+            android:layout_marginRight="22dp" />
+
+        <ImageView
+            android:layout_width="158dp"
+            android:layout_height="158dp"
+            android:id="@+id/imageView3"
+            android:layout_gravity="center"
+            android:src="@drawable/gray_centercircle" />
+
+        <com.loopj.android.image.SmartImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:id="@+id/imageView"
+            android:layout_weight="9"
+            android:scaleType="matrix"
+            android:layout_gravity="center"
+            android:padding="2dp"
+            android:background="#455a64" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageButton"
+            android:layout_gravity="center"
+            android:background="@drawable/play"
+            android:onClick="start" />
+
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/textView2"
+        android:layout_gravity="left|top"
+        android:layout_marginTop="40dp"
+        android:textSize="18sp"
+        android:textColor="#424242"
+        android:gravity="center"
+        android:layout_marginLeft="16dp"
+        android:ellipsize="marquee"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:singleLine="true"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/textView"
+        android:layout_gravity="left|top"
+        android:layout_marginTop="64dp"
+        android:textSize="14sp"
+        android:textColor="#607d8b"
+        android:gravity="center"
+        android:layout_marginLeft="16dp"
+        android:ellipsize="marquee"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:singleLine="true"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Now Playing"
+        android:id="@+id/textView4"
+        android:layout_gravity="left|top"
+        android:layout_marginLeft="40dp"
+        android:layout_marginTop="26dp"
+        android:textColor="#ff7043"
+        android:textSize="12sp" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/imageView2"
+        android:layout_gravity="left|top"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="20dp"
+        android:src="@drawable/nowplayng" />
+
+</FrameLayout>
+
+
+

@@ -89,9 +89,13 @@ public class MusicService extends Service {
 
     public void subOnCreateService(boolean random){
         if (mp != null) {
-            if (mp.isPlaying()) {mp.stop();}
-            mp.release();
-            mp = null;
+            try{
+                if (mp.isPlaying()) {mp.stop();}
+                mp.release();
+                mp = null;
+            }catch (IllegalStateException e){
+                e.printStackTrace();
+            }
         }
         try {
             getIntentContents(random,isNotif);//falseとする時ランダムでなく最新のものを取得

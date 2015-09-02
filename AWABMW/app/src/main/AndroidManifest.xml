@@ -33,7 +33,6 @@
             android:label="@string/title_activity_recommendation"
             android:screenOrientation="portrait"
             android:theme="@style/MyTheme" />
-        </activity>
 
         <service android:name=".MusicService" />
 

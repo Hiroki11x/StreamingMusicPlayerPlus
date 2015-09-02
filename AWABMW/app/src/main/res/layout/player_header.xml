@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#ffffff">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#000000">
+
+        <com.loopj.android.image.SmartImageView
+            android:layout_width="360dp"
+            android:layout_height="360dp"
+            android:id="@+id/imageView"
+            android:layout_weight="9"
+            android:scaleType="fitCenter"
+            android:layout_gravity="center_horizontal|top"
+            android:padding="2dp"
+            android:background="#000000" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="142dp"
+        android:layout_height="142dp"
+        android:layout_weight="7"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/frameLayout"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="330dp">
+
+
+
+
+        <bmw.awa.awabmw.CircularSeekBar
+            android:layout_width="152dp"
+            android:layout_height="152dp"
+            android:id="@+id/seek_bar"
+            android:layout_gravity="center"
+            android:padding="50dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:id="@+id/textrighttime"
+            android:textSize="14dp"
+            android:textColor="#424242"
+            android:layout_gravity="center_horizontal|top"
+            android:layout_marginTop="84dp"
+            android:layout_marginLeft="22dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="|"
+            android:id="@+id/textcenterBar"
+            android:textSize="14dp"
+            android:textColor="#eceff1"
+            android:layout_gravity="center_horizontal|top"
+            android:layout_marginTop="84dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:id="@+id/textlefttime"
+            android:textSize="14dp"
+            android:textColor="#ff7043"
+            android:layout_gravity="center_horizontal|top"
+            android:layout_marginTop="84dp"
+            android:layout_marginRight="22dp" />
+
+
+        <ImageButton
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:id="@+id/start"
+            android:layout_gravity="center"
+            android:background="@drawable/play" />
+
+    </FrameLayout>
+
+    <ImageButton
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:id="@+id/previous_track"
+        android:layout_gravity="left|bottom"
+        android:layout_marginLeft="72dp"
+        android:background="@drawable/previous"
+        android:layout_marginBottom="51dp" />
+
+    <ImageButton
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:id="@+id/next_track"
+        android:layout_gravity="right|bottom"
+        android:layout_marginRight="72dp"
+        android:background="@drawable/next"
+        android:onClick="nextTrackClicked"
+        android:layout_marginBottom="51dp" />
+
+</FrameLayout>
+
+
+

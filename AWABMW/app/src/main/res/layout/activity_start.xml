@@ -1,16 +1,15 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
-    tools:context=".MainActivity">
+    tools:context=".StartActivity"
+    android:orientation="vertical">
 
     <LinearLayout
         android:id="@+id/search_bar"
-
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="70dp">
+        android:layout_marginTop="80dp">
 
         <EditText
             android:id="@+id/edit_text"
@@ -20,20 +19,17 @@
             android:hint="Keyword"
             android:inputType="text" />
 
-        <Button
-            android:id="@+id/btn_jump"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Jump" />
-
     </LinearLayout>
 
-    <ListView
-        android:id="@+id/list_view"
+    <GridView
+        android:id="@+id/gridview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentBottom="true"
-        android:layout_below="@id/search_bar"
-        tools:listitem="@layout/list_item" />
+        android:background="#000000"
+        android:gravity="center"
+        android:horizontalSpacing="1dp"
+        android:verticalSpacing="1dp"
+        android:numColumns="4"
+        android:stretchMode="columnWidth" />
 
-</RelativeLayout>
+</LinearLayout>

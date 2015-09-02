@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="70dp"
+    android:padding="10dp"
+    android:background="@drawable/whitecardshadow"
+    android:paddingBottom="12dp"
+    android:paddingTop="19dp">
+
+    <ImageView
+        android:id="@+id/image_view"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/nowplaying" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView android:id="@+id/now_playing"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:lines="1"
+                android:textSize="10sp"
+                android:textColor="#ff7043"
+                android:text="now Playing" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="10sp"
+                android:textColor="#eceff1"
+                android:id="@+id/text_bar" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="10sp"
+                android:textColor="#424242"
+                android:id="@+id/text_right" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/track_text_view"
+            android:textSize="16sp"
+            tools:text="track"
+            android:ellipsize="marquee"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:singleLine="true"
+            android:textColor="#424242" />
+
+        <TextView android:id="@+id/artist_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:lines="1"
+            tools:text="artist"
+            android:textColor="#424242"
+            android:textSize="12dp" />
+    </LinearLayout>
+
+</LinearLayout>

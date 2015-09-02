@@ -46,7 +46,9 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
 
-        mAdapter = new ListAdapter(this, R.layout.list_item);//list_itemは画像と文字があるリストを選択
+
+
+        mAdapter = new ListAdapter(this, R.layout.player_header);//list_itemは画像と文字があるリストを選択
         ListView listView = (ListView) findViewById(R.id.list_view);//activity_list内のlist_viewをListView を選択
 
         //ここはonCreate()なので、getView以降は呼ばれていない
@@ -63,6 +65,9 @@ public class MainActivity extends Activity {
                 startActivity(new Intent(getApplicationContext(), RecommendationActivity.class));
             }
         });
+        if(getIntent().getAction()=="FROM_START"){
+            tryGetMusic(getIntent().getStringExtra("searchword"));
+        }
     }
 
     private class ListAdapter extends ArrayAdapter<JSONObject> {//ListAdapterクラスを内部クラスとして定義
@@ -203,8 +208,6 @@ public class MainActivity extends Activity {
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
 
-
-
             for(int i =0;i<3;i++){
                 JSONObject tempResult = mAdapter.getItem(i);//JSONObject取得
                 Item tempItem = new Item();
@@ -233,5 +236,82 @@ public class MainActivity extends Activity {
         }
     }
 
+    public void tryGetMusic(String text){
+        try {
+            // url encode 例. スピッツ > %83X%83s%83b%83c みたいになるらしい
+            text = URLEncoder.encode(text, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            Log.e("", e.getMessage(), e);
+            return ;
+        }
 
+
+        if (!TextUtils.isEmpty(text)) {//EditTextが空列でなければ
+            // iTunes API から取得してくるのでURLを準備
+            //このURLだけ検索ワードから色々ひっかけてくれる
+            String urlString = "https://itunes.apple.com/search?term=" + text + "&country=JP&media=music&lang=ja_jp";
+
+            new AsyncTask<String, Void, JSONObject>() {//AsyncTask実行
+                //1番目はバックグラウンド処理を実行する時にUIスレッド（メインスレッド）から与える引数の型:String
+                //2番目のProgressは進捗状況を表示するonProgressUpdateの引数の型:Void(今回は使わない)
+                //最後のはバックグラウンド処理の後に受け取る型:JSONObject
+
+                @Override
+                protected JSONObject doInBackground(String... params) {//バックグラウンドで行う処理を記述する
+                    HttpURLConnection conn;
+                    try {
+                        //params[0]にはurlStringが入るので、URLから接続を開始
+                        URL url = new URL(params[0]);
+                        conn = (HttpURLConnection) url.openConnection();
+
+                    } catch (MalformedURLException e) {
+                        Log.e("", e.getMessage(), e);
+                        return null;
+                    } catch (IOException e) {
+                        Log.e("", e.getMessage(), e);
+                        return null;
+                    }
+
+                    StringBuilder result = new StringBuilder();
+
+                    //Java7以降のtry-catch-resoureceかな
+                    //検索で引っかかったものが、文字の羅列でくるので、1行ずつresult(StringBuilder)にappend
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                        String s;
+                        while ((s = reader.readLine()) != null) {
+                            result.append(s);//resultはStringBuilderのこと
+                        }
+                    } catch (IOException e) {
+                        Log.e("", e.getMessage(), e);
+                        return null;
+                    }
+
+                    try {
+                        return new JSONObject(result.toString());//result(StringBuilder)からJSONObjectを生成してreturn
+                    } catch (JSONException e) {
+                        Log.e("", e.getMessage(), e);
+                        return null;
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(JSONObject jsonObject) {//doInBackground後の処理
+                    Log.d("", jsonObject.toString());
+
+                    mAdapter.clear();//ListVierに突っ込むAdapterを一度クリア
+
+                    JSONArray results = jsonObject.optJSONArray("results");
+                    //results(iTunes APIから取得できる楽曲情報全てをまとめた選択の意味)よりJSONObjectを取得
+                    if (results != null) {
+                        for (int i = 0; i <results.length(); i++) {
+                            mAdapter.add(results.optJSONObject(i));//JSONArrayのi番目の要素をAdapterに追加
+
+                        }
+                    }
+                    Log.d("", "end mAdapter.add()" + System.currentTimeMillis());
+                }
+            }.execute(urlString);//AsyncTaskを実行
+        }
+
+    }
 }

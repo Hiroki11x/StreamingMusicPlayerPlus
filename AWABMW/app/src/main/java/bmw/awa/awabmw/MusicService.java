@@ -20,6 +20,7 @@ import android.util.Log;
 import android.widget.RemoteViews;
 
 import com.activeandroid.query.Select;
+import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -216,7 +217,7 @@ public class MusicService extends Service {
     //targetAPtとかSuppressWarning入れないと落ちる。
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1| Build.VERSION_CODES.JELLY_BEAN_MR2|Build.VERSION_CODES.KITKAT|Build.VERSION_CODES.JELLY_BEAN|Build.VERSION_CODES.LOLLIPOP|Build.VERSION_CODES.LOLLIPOP_MR1)
     @SuppressWarnings("deprecation")
-    private void  generateNotification() {
+    private void generateNotification() {
         //通知領域タップ時のPendingIntentを生成
         Intent actionIntent = new Intent(getApplicationContext(), PlayerActivity.class);
         PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -229,11 +230,8 @@ public class MusicService extends Service {
         builder.setSmallIcon(R.drawable.mplus_logo);//ここに上側に表示する画像を
         builder.setContent(mNotificationView);//独自レイアウトをNotificationに設定
         builder.setTicker("M+ now Playing...");// 通知領域に初期表示時のメッセージを設定
-        //builder.setContentIntent(pi);//pendingIntentをセット
+        builder.setContentIntent(pi);//pendingIntentをセット
         builder.setDefaults(Notification.DEFAULT_LIGHTS);
-
-        // ステータスバーにレイアウト設定されているイメージアイコンを設定
-        mNotificationView.setImageViewResource(R.id.imageicon, R.drawable.mplus_logo);//第一引数はセット先のID
 
         /**********これでも表示されない**********
          mNotificationView.setImageViewBitmap(R.id.imageicon, jacketImage_S);
@@ -242,10 +240,6 @@ public class MusicService extends Service {
          */
         mNotificationView.setTextViewText(R.id.textTitle, trackName_S);// ステータスバーのレイアウトに設定されていタイトル名にタイトルを設定
         mNotificationView.setTextViewText(R.id.textArtist, artistName_S);// ステータスバーのレイアウトに設定されているアーティスト名にアーティストを設定
-
-        // イメージアイコンを押された時のintentを設定
-//        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(MusicService.this, PlayerActivity.class), PendingIntent.FLAG_ONE_SHOT);
-//        mNotificationView.setOnClickPendingIntent(R.id.imageicon, contentIntent);
 
         Intent service = new Intent(MusicService.this,PlayerActivity.class);
         mNotificationView.setOnClickFillInIntent(R.id.imageicon, service);
@@ -256,6 +250,7 @@ public class MusicService extends Service {
         NotificationManager manager = (NotificationManager)getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
         if (builder.build() != null) {
             manager.notify(1,builder.build());
+            Picasso.with(this).load(imageURI_S).into(mNotificationView, R.id.imageicon, 1, builder.build());//アイコン画像を刺した
         }
     }
 

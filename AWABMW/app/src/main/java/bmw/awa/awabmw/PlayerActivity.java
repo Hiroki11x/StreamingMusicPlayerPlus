@@ -30,6 +30,7 @@ import com.github.ksoichiro.android.observablescrollview.ObservableListView;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
 import com.github.ksoichiro.android.observablescrollview.ScrollState;
 import com.loopj.android.image.SmartImageView;
+import com.vstechlab.easyfonts.EasyFonts;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -104,14 +105,29 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
 
         //notificationからの呼び出し
         if(getIntent().getAction()=="ACTION_STOP_PLAY") {//playpauseが押されたとき
-            Log.d("DEBUG TEST","----------onCreate Intent PLAY PAUSE ----------");
+            Log.d("DEBUG TEST", "----------onCreate Intent PLAY PAUSE ----------");
             subOnCreate(false);
-            nextTrack();
+            centerButtonClicked();
         }else if(getIntent().getAction()=="ACTION_NEXT"){
             Log.d("DEBUG TEST", "----------onCreate Intent NEXT TRACK----------");
+            SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
+            if(timer!=null){//これがないと再生せずに戻った時エラーでる
+                timer.cancel();
+                timer = null;
+            }
+            SharedPreferences.Editor editor = data.edit();
+            editor.putLong("key", data.getLong("key", 0) + 1l);//再生する曲をインクリメントで次へ
+            editor.apply();//Activity存在していないときはitemをSharedPreference保存
             subOnCreate(false);
-            nextTrack();
-        }else{//普通のActivity呼び出し
+            centerButtonClicked();
+            try{
+                mBindService.nextTrackService();//Service#subOnCreateService(true)
+            }catch (RemoteException e){
+                e.printStackTrace();
+            }catch (NullPointerException e){
+                e.printStackTrace();
+            }
+        } else {//普通のActivity呼び出し
             Log.d("DEBUG TEST", "----------onCreate Intent DAFAULT----------");
             subOnCreate(false);
         }
@@ -159,16 +175,23 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
         jacketImage.setScaleType(ImageView.ScaleType.FIT_CENTER);//画像を正方形で表示);
 
         nowPlaying = (TextView)MiddleView.findViewById(R.id.now_playing);
+        nowPlaying.setTypeface(EasyFonts.robotoMedium(this));
         centerBar = (TextView)MiddleView.findViewById(R.id.text_bar);
+        nowPlaying.setTypeface(EasyFonts.robotoMedium(this));
         rightText = (TextView)MiddleView.findViewById(R.id.text_right);
+        nowPlaying.setTypeface(EasyFonts.robotoMedium(this));
         titleText = (TextView) MiddleView.findViewById(R.id.track_text_view);//
         titleText.setText(trackName);//トラック名をセット
+        titleText.setTypeface(EasyFonts.robotoMedium(this));
         artistText = (TextView) MiddleView.findViewById(R.id.artist_text_view);
         artistText.setText(artistName);//アーティスト名をセット
+        artistText.setTypeface(EasyFonts.robotoMedium(this));
 //        tryGetMusic(artistName);
         getItems();
         LeftSideText = (TextView)HeaderView.findViewById(R.id.textlefttime);
+        LeftSideText.setTypeface(EasyFonts.robotoBold(this));
         RightSideText = (TextView)HeaderView.findViewById(R.id.textrighttime);
+        RightSideText.setTypeface(EasyFonts.robotoBold(this));
 
         feedin_btn = new AlphaAnimation( 0, 1 );//(0,1)フェードイン
         feedin_btn.setDuration(500);//表示時間を指定
@@ -440,7 +463,9 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
             //resultとしてJSONオブジェクトが渡されている状態
             imageView.setImageUrl(result.artworkUrl100);
             trackTextView.setText(result.track_name);
+            trackTextView.setTypeface(EasyFonts.robotoMedium(getApplication()));
             artistTextView.setText(result.artistName);
+            artistTextView.setTypeface(EasyFonts.robotoMedium(getApplication()));
             return convertView;//ListViewの1要素のViewを返す
         }
     }
@@ -485,7 +510,7 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
         long maxId = tempItem.getId();
         SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
         long minId = data.getLong("key",0)+1;
-        if(maxId-minId>8)maxId= (maxId>minId+8)?minId+8:maxId;//Adapterセットするものは8個までに制限
+        if(maxId-minId>=8)maxId= (maxId>=minId+8)?minId+8:maxId;//Adapterセットするものは8個までに制限
         for (int i = (int)minId; i < maxId ; i++) {
             Item innnerItem = new Select().from(Item.class).where("Id = ?", i).executeSingle();
             mAdapter.add(innnerItem);//JSONArrayのi番目の要素をAdapterに追加

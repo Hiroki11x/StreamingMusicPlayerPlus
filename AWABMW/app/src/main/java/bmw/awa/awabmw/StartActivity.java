@@ -20,6 +20,7 @@ import android.widget.EditText;
 import android.widget.GridView;
 
 import com.loopj.android.image.SmartImageView;
+import com.vstechlab.easyfonts.EasyFonts;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -64,8 +65,8 @@ public class StartActivity extends Activity {
         gridview.setOnItemClickListener(new OnItemClickListener());
         tryGetMusic("pop");
 
-
         final EditText editText = (EditText) findViewById(R.id.edit_text);//曲の検索画面
+        editText.setTypeface(EasyFonts.robotoMedium(this));
         editText.setOnKeyListener(new OnKeyListener());//文字入力のEditTextにリスナ追加
 
     }
@@ -182,7 +183,7 @@ public class StartActivity extends Activity {
         if (!TextUtils.isEmpty(text)) {//EditTextが空列でなければ
             // iTunes API から取得してくるのでURLを準備
             //このURLだけ検索ワードから色々ひっかけてくれる
-            String urlString = "https://itunes.apple.com/search?term=" + text + "&country=JP&media=music&lang=ja_jp";
+            String urlString = "https://itunes.apple.com/search?term=" + text + "&country=JP&media=music&lang=en";
 
             new AsyncTask<String, Void, JSONObject>() {//AsyncTask実行
                 //1番目はバックグラウンド処理を実行する時にUIスレッド（メインスレッド）から与える引数の型:String

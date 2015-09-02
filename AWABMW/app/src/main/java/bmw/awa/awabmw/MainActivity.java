@@ -20,6 +20,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.loopj.android.image.SmartImageView;
+import com.vstechlab.easyfonts.EasyFonts;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -58,16 +59,10 @@ public class MainActivity extends Activity {
 
         final EditText editText = (EditText) findViewById(R.id.edit_text);//曲の検索画面
         editText.setOnKeyListener(new OnKeyListener());//文字入力のEditTextにリスナ追加
-
-        btnJump = (Button) findViewById(R.id.btn_jump);
-        btnJump.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(getApplicationContext(), RecommendationActivity.class));
-            }
-        });
+        editText.setTypeface(EasyFonts.robotoMedium(this));
         if(getIntent().getAction()=="FROM_START"){
             tryGetMusic(getIntent().getStringExtra("searchword"));
+            editText.setText(getIntent().getStringExtra("searchword"));
         }
     }
 
@@ -91,7 +86,9 @@ public class MainActivity extends Activity {
             //ImageVieだと、URIから画像セットがイマイチうまくいかないのでSmartImageViewを使用
             SmartImageView imageView = (SmartImageView) convertView.findViewById(R.id.image_view);
             TextView trackTextView = (TextView) convertView.findViewById(R.id.track_text_view);
+            trackTextView.setTypeface(EasyFonts.robotoMedium(getApplicationContext()));
             TextView artistTextView = (TextView) convertView.findViewById(R.id.artist_text_view);
+            artistTextView.setTypeface(EasyFonts.robotoMedium(getApplicationContext()));
 
             // 表示する行番号のデータを取り出す
             JSONObject result = getItem(position);//positionにクリックされた要素の番号が渡されている
@@ -253,7 +250,7 @@ public class MainActivity extends Activity {
         if (!TextUtils.isEmpty(text)) {//EditTextが空列でなければ
             // iTunes API から取得してくるのでURLを準備
             //このURLだけ検索ワードから色々ひっかけてくれる
-            String urlString = "https://itunes.apple.com/search?term=" + text + "&country=JP&media=music&lang=ja_jp";
+            String urlString = "https://itunes.apple.com/search?term=" + text + "&country=JP&media=music&lang=";
 
             new AsyncTask<String, Void, JSONObject>() {//AsyncTask実行
                 //1番目はバックグラウンド処理を実行する時にUIスレッド（メインスレッド）から与える引数の型:String

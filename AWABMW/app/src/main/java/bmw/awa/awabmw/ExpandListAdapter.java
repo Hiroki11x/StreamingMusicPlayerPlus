@@ -1,10 +1,12 @@
 package bmw.awa.awabmw;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.loopj.android.image.SmartImageView;
@@ -40,16 +42,54 @@ public class ExpandListAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public View getChildView(int arg0, int arg1, boolean arg2, View view, ViewGroup arg4) {
+    public View getChildView(final int arg0, final int arg1, boolean arg2, View view, ViewGroup arg4) {
         Element element = ((elements.get(arg0)).getChildren()).get(arg1);
-
 
         /**
          * 子アイテムの描画
          */
-        view = inflater.inflate(R.layout.expandable_tempo_child, null);
-        TextView textView = (TextView) view.findViewById(R.id.child_title);
-        textView.setText(element.getTrackName());
+        TextView textView;
+        TextView textView2;
+        SmartImageView smartImageView;
+        switch (page) {
+            case 1:
+                view = inflater.inflate(R.layout.expandable_tempo_child, null);
+                textView = (TextView) view.findViewById(R.id.child_title);
+                textView.setText(element.getTrackName());
+                smartImageView = (SmartImageView) view.findViewById(R.id.child_jacket);
+                smartImageView.setImageUrl(element.getArtworkUrl100());
+                break;
+            case 2:
+                view = inflater.inflate(R.layout.expandable_artist_child, null);
+                textView = (TextView) view.findViewById(R.id.child_title);
+                textView.setText(element.getTrackName());
+                textView2 = (TextView)view.findViewById(R.id.number);
+                textView2.setText("" + arg1);
+                break;
+            case 3:
+                view = inflater.inflate(R.layout.expandable_album_child, null);
+                textView = (TextView) view.findViewById(R.id.child_title);
+                textView.setText(element.getTrackName());
+                smartImageView = (SmartImageView) view.findViewById(R.id.child_jacket);
+                smartImageView.setImageUrl(element.getArtworkUrl100());
+                break;
+            default:
+                view = inflater.inflate(R.layout.expandable_artist_child, null);
+                textView = (TextView) view.findViewById(R.id.child_title);
+                textView.setText(element.getTrackName());
+                smartImageView = (SmartImageView) view.findViewById(R.id.child_jacket);
+                smartImageView.setImageUrl(element.getArtworkUrl100());
+                break;
+        }
+
+        ((ImageView)view.findViewById(R.id.child_add)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Element e = ((elements.get(arg0)).getChildren()).get(arg1);
+                Item selected = new Item(e.getTrackName(), e.getpreviewUrl(), e.getArtworkUrl100(), e.getArtistName(), e.getCollectionName(), e.getRegisterTime());
+                selected.save();
+            }
+        });
 
         return view;
     }
@@ -121,21 +161,21 @@ public class ExpandListAdapter extends BaseExpandableListAdapter {
                         smartImageView.setImageUrl(element.getArtworkUrl100());
                         break;
                     case 2:
-                        view = inflater.inflate(R.layout.expandable_tempo_child, null);
+                        view = inflater.inflate(R.layout.expandable_artist_child, null);
                         textView = (TextView) view.findViewById(R.id.child_title);
                         textView.setText(element.getTrackName());
                         smartImageView = (SmartImageView) view.findViewById(R.id.child_jacket);
                         smartImageView.setImageUrl(element.getArtworkUrl100());
                         break;
                     case 3:
-                        view = inflater.inflate(R.layout.expandable_tempo_child, null);
+                        view = inflater.inflate(R.layout.expandable_album_child, null);
                         textView = (TextView) view.findViewById(R.id.child_title);
                         textView.setText(element.getTrackName());
                         smartImageView = (SmartImageView) view.findViewById(R.id.child_jacket);
                         smartImageView.setImageUrl(element.getArtworkUrl100());
                         break;
                     default:
-                        view = inflater.inflate(R.layout.expandable_tempo_child, null);
+                        view = inflater.inflate(R.layout.expandable_artist_child, null);
                         textView = (TextView) view.findViewById(R.id.child_title);
                         textView.setText(element.getTrackName());
                         smartImageView = (SmartImageView) view.findViewById(R.id.child_jacket);

@@ -4,13 +4,17 @@ xmlns:tools="http://schemas.android.com/tools"
 android:layout_width="match_parent"
 android:layout_height="match_parent"
 tools:context="bmw.awa.awabmw.DetailActivity"
-    android:background="#eceff1">
+    android:background="#ffffff">
+
 
 
     <com.github.ksoichiro.android.observablescrollview.ObservableListView
+        android:scrollbars="none"
         android:id="@+id/listView"
-        android:background="#eceff1"
+        android:background="#ffffff"
         android:layout_width="match_parent"
+        android:dividerHeight="0dp"
+        android:divider="#bdbdbd"
         android:layout_height="wrap_content"></com.github.ksoichiro.android.observablescrollview.ObservableListView>
 
 </FrameLayout>

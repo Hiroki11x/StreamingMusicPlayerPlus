@@ -58,11 +58,10 @@ import java.util.TimerTask;
 public class PlayerActivity extends Activity implements ObservableScrollViewCallbacks{//曲を選択した時のアクティビティ
 
     private MusicService mBindService;
-    ImageButton playButton;
+    ImageButton playButton,prevButton,nextButton;
     SmartImageView jacketImage;
     TextView titleText, artistText;
     CircularSeekBar seekBar;
-//    SeekBar intentSeekBar;
     Timer timer;
     Handler handler;
     TextView LeftSideText,RightSideText;//現在の再生位置を表示
@@ -166,16 +165,18 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flag){
-                    start();
-                }
+                if(flag)start();
+
             }
         });
+        prevButton = (ImageButton)HeaderView.findViewById(R.id.previous_track);
+        nextButton = (ImageButton)HeaderView.findViewById(R.id.next_track);
         jacketImage = (SmartImageView) HeaderView.findViewById(R.id.imageView);//Jacket画像を
         seekBar = (CircularSeekBar) HeaderView.findViewById(R.id.seek_bar);
         seekBar.setAlpha(0.9f);
         jacketImage.setImageUrl(imageURI);
         jacketImage.setScaleType(ImageView.ScaleType.FIT_CENTER);//画像を正方形で表示);
+
         nowPlaying = (TextView)MiddleView.findViewById(R.id.now_playing);
         centerBar = (TextView)MiddleView.findViewById(R.id.text_bar);
         rightText = (TextView)MiddleView.findViewById(R.id.text_right);
@@ -341,7 +342,10 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
     }
 
     public void nextTrackClicked(View v){//次へボタンが押された時の処理は全てここに
-        nextTrack();
+        if(flag){
+            nextTrack();
+        }
+
     }
 
     public void nextTrack(){
@@ -364,7 +368,7 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
     public void onScrollChanged(int scroll_y, boolean var2, boolean var3){
         //scroll量
         //
-        MiddleView.setTranslationY(8);
+        MiddleView.setTranslationY(4);
 //        HeaderView.setTranslationY(scroll_y*1.2f);
         HeaderView.setTranslationY(scroll_y);
         WindowManager wm = getWindowManager();
@@ -373,21 +377,18 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
         jacketImage.setAlpha(1.5f - percent);
         jacketImage.setScaleX(1.0f + percent);
         jacketImage.setScaleY(1.0f + percent);
-        if(scroll_y>380){
+        if(scroll_y>365){
             nowPlaying.setText("now playing " +nowLength);
             centerBar.setText(" | ");
             rightText.setText(maxLength);
-//            playButton.setVisibility(View.INVISIBLE);
             flag = false;
         } else {
             flag =true;
-//            playButton.setVisibility(View.VISIBLE);
             playButton.setAlpha(1.0f-percent*4);
             seekBar.setAlpha(0.9f-percent*4);
             nowPlaying.setText("now playing");
             centerBar.setText("");
             rightText.setText("");
-//            jacketImage.setAlpha(1.0f);
         }
     }
 
@@ -518,7 +519,7 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
                     JSONArray results = jsonObject.optJSONArray("results");
                     //results(iTunes APIから取得できる楽曲情報全てをまとめた選択の意味)よりJSONObjectを取得
                     if (results != null) {
-                        for (int i = 0; i <((results.length()>6)?6:results.length()); i++) {
+                        for (int i = 0; i <((results.length()>8)?8:results.length()); i++) {
                             mAdapter.add(results.optJSONObject(i));//JSONArrayのi番目の要素をAdapterに追加
 
                         }
@@ -528,6 +529,10 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
             }.execute(urlString);//AsyncTaskを実行
         }
 
+    }
+    public  void intentSearch(View v){
+        Intent intent = new Intent(PlayerActivity.this,RecommendationActivity.class);
+        startActivity(intent);
     }
 }
 

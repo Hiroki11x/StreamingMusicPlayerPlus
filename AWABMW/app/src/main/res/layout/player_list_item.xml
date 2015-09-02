@@ -3,14 +3,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="48dp"
-    android:padding="10dp"
-    android:background="#ffffff">
+    android:background="@drawable/whitecard_divider"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
 
     <com.loopj.android.image.SmartImageView
         android:id="@+id/image_view"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_marginRight="10dp"/>
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="28dp" />
 
     <TextView android:id="@+id/track_text_view"
         android:layout_width="wrap_content"
@@ -19,7 +21,7 @@
         android:layout_toRightOf="@id/image_view"
         android:ellipsize="end"
         android:lines="1"
-        android:textSize="20sp"
+        android:textSize="14sp"
         android:textColor="#424242"
         tools:text="track"/>
 
@@ -31,7 +33,8 @@
         android:ellipsize="end"
         android:lines="1"
         android:textColor="#607d8b"
-        tools:text="artist"/>
+        tools:text="artist"
+        android:textSize="12sp" />
 
 
 </RelativeLayout>

@@ -223,38 +223,7 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
                     playButton.startAnimation(feedout_btn);
                     playButton.startAnimation(feedin_btn);
                 }
-                if (timer == null) { // timerの多重起動を防ぐ
-                    timer = new Timer();
-                    timer.schedule(new TimerTask() {
-                        @Override
-                        public void run() {// 現在の再生位置を取得する
-                            try{
-                                nowLength = mBindService.calcDuration(false);//現在の時刻を取得
-                                handler.post(new Runnable() {// UIを操作するため、Handlerが必要
-                                    @Override
-                                    public void run() {
-                                        RightSideText.setText(maxLength); // 現在の再生位置をセット
-                                        LeftSideText.setText(nowLength);
-                                        seekBar.invalidate();//これを加えることでプログレスバー線の色が変わってきた
-                                        try{
-                                            seekBar.setProgress(mBindService.getMediaPlayer().getCurrentPosition()); // SeekBarにも現在位置をセット
-                                        }catch (RemoteException e) {
-                                            e.printStackTrace();
-                                        }catch (ArithmeticException e){
-                                            e.printStackTrace();
-                                        }catch (IllegalStateException e){
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                });
-                            }catch (RemoteException e) {
-                                e.printStackTrace();
-                            }catch (IllegalStateException e){
-                                e.printStackTrace();
-                            }
-                        }
-                    }, 0, 500); // 1000ミリ秒間隔で実行 timerTaskを実行
-                }
+                startSeekBarAnimation();
             }catch (RemoteException e) {
                 e.printStackTrace();
             }catch (IllegalStateException e){
@@ -263,9 +232,49 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
         }
     }
 
-    public void seekBarPrepare() {//seekBarの再生準備 afterbinding
-        seekBar.setProgress(0);
+    public void startSeekBarAnimation(){//SeekBaの動きのhandler開始
+        if (timer == null) { // timerの多重起動を防ぐ
+            timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {// 現在の再生位置を取得する
+                    try{
+                        nowLength = mBindService.calcDuration(false);//現在の時刻を取得
+                        handler.post(new Runnable() {// UIを操作するため、Handlerが必要
+                            @Override
+                            public void run() {
+                                RightSideText.setText(maxLength); // 現在の再生位置をセット
+                                LeftSideText.setText(nowLength);
+                                seekBar.invalidate();//これを加えることでプログレスバー線の色が変わってきた
+                                try{
+                                    seekBar.setProgress(mBindService.getMediaPlayer().getCurrentPosition()); // SeekBarにも現在位置をセット
+                                }catch (RemoteException e) {
+                                    e.printStackTrace();
+                                }catch (ArithmeticException e){
+                                    e.printStackTrace();
+                                }catch (IllegalStateException e){
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                    }catch (RemoteException e) {
+                        e.printStackTrace();
+                    }catch (IllegalStateException e){
+                        e.printStackTrace();
+                    }
+                }
+            }, 0, 500); // 1000ミリ秒間隔で実行 timerTaskを実行
+        }
+    }
+
+    public void seekBarPrepare(boolean isRestart) {//seekBarの再生準備 afterbinding
+
         try{
+            if(isRestart){
+                seekBar.setProgress(mBindService.getMediaPlayer().getCurrentPosition());
+            }else{
+                seekBar.setProgress(0);
+            }
             seekBar.setMaxProgress(mBindService.getMediaPlayer().getDuration());
             maxLength = mBindService.calcDuration(true);//maxlengthに全体時間を表示
         }catch (RemoteException e) {
@@ -310,7 +319,7 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
          * この3のタイミングでafterBinding読んでいる
          * が終わって初めてService側の値とかをmBindService経由で取得できる
          */
-        seekBarPrepare();//playerのDurationアクセスとかするのでafterbindingで
+        seekBarPrepare(false);//playerのDurationアクセスとかするのでafterbindingで
     }
 
     @Override
@@ -383,6 +392,20 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
             prevTrack();
         }
     }
+
+    @Override
+    public  void onRestart(){
+        super.onRestart();
+        getItems();
+        handler = new Handler();//Handlerを初期化
+        try{
+            seekBarPrepare(true);
+        }catch (NullPointerException e){
+            e.printStackTrace();
+        }
+        startSeekBarAnimation();
+    }
+
 
     public void prevTrack(){
         if(mBindService!=null) {
@@ -510,8 +533,8 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
         long maxId = tempItem.getId();
         SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
         long minId = data.getLong("key",0)+1;
-        if(maxId-minId>=8)maxId= (maxId>=minId+8)?minId+8:maxId;//Adapterセットするものは8個までに制限
-        for (int i = (int)minId; i < maxId ; i++) {
+        if((maxId-minId)>=8)maxId = (maxId>=minId+8)?minId+8:maxId;//Adapterセットするものは8個までに制限
+        for (int i = (int)minId; i < maxId+1 ; i++) {
             Item innnerItem = new Select().from(Item.class).where("Id = ?", i).executeSingle();
             mAdapter.add(innnerItem);//JSONArrayのi番目の要素をAdapterに追加
         }

@@ -62,15 +62,13 @@ public class MusicService extends Service {
 
     static boolean isActivityExist=false;
     private static MediaPlayer mp;
-    private static Intent intentStore;
-    private static Context contex;
     public static volatile boolean isNotif=false;
-    private int loopState = 0;//loopの選択肢
     private volatile String trackName_S = "";
     private volatile String previewUrl_S = "";
     private volatile String imageURI_S = "";
     private volatile String artistName_S = "";
     private volatile String albumName_S = "";
+    private static long nowPlayingId;
 //    private ProgressDialog dialog;
 
     // Serviceに接続するためのBinderクラスを実装する
@@ -106,7 +104,6 @@ public class MusicService extends Service {
 
     @Override//2  Service接続時に呼ばれる。ServiceとActivityを仲介するIBinderを返却する。
     public IBinder onBind(Intent intent) {// 戻り値として、Serviceクラスとのbinderを返す。
-        intentStore = intent;
         return mBinder;
     }
 
@@ -123,7 +120,6 @@ public class MusicService extends Service {
 
     @Override
     public void onRebind(Intent intent) {// Unbind後に再接続する場合に呼ばれる
-        intentStore = intent;
         Log.i("", "onRebind" + ": " + intent);
     }
 
@@ -142,6 +138,16 @@ public class MusicService extends Service {
                     // イベント受領時の処理を記述する
                     Log.d("DEBUG TEST", "onCompletion @Service");//ここの検知はOK
                     try{
+                        SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
+                        Item maxItem = new Select().from(Item.class).orderBy("id DESC").executeSingle();
+                        if(maxItem.getId()<data.getLong("key",0)+1l){
+                            mp.seekTo(0);
+                            return;
+                        }//
+                        SharedPreferences.Editor editor = data.edit();
+                        editor.putLong("key", data.getLong("key",0)+1l);//再生する曲をインクリメントで次へ
+                        editor.apply();//Activity存在していないときはitemをSharedPreference保存
+
                         if(isActivityExist){//Activityが存在しているとき
                             Intent broadCastIntent = new Intent("awa");// intentを作成する。（SimpleService.ACTIONのブロードキャストとして配信させる）
                             sendBroadcast(broadCastIntent);
@@ -194,56 +200,17 @@ public class MusicService extends Service {
         subOnCreateService(true);//trueとする時ランダムに取得SharedPreferenceから取得
     }
 
-    public void setLoopStateService() throws RemoteException {
-        loopState = (loopState + 1) % 2;
-        switch (loopState) {
-            case 0:
-                mp.setLooping(false);
-                break;
-            case 1:
-                mp.setLooping(true);
-                break;
-        }
-    }
-
     public void getIntentContents(boolean random,boolean notif) throws RemoteException {
         Item item = null;//DataBaseからそれぞれの値を取得してくる
-
-        if(isActivityExist){//Activity存在しているとき
-            if(random){//randomに取得
-                SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
-                long keyId = data.getLong("key",1 );
-                item = new Select().from(Item.class).where("Id = ?", keyId).executeSingle();
-            }else{//初期でタップされてきたとき
-                item = new Select().from(Item.class).orderBy("id DESC").executeSingle();
-            }
-        }else{//Activityが存在しないときはService側でitemをランダムに取得しSharedPreference保存
-            SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
-            if(notif){//Activity存在せず、Notificationから呼び出されたとき
-                //SharedPreference保存されているIDから選曲
-                long keyId = data.getLong("key",1 );
-                item = new Select().from(Item.class).where("Id = ?", keyId).executeSingle();
-                isNotif=false;
-            }else{//Activityが存在せず、ランダム再生のとき
-                item = new Select().from(Item.class).orderBy("RANDOM()").executeSingle();
-                SharedPreferences.Editor editor = data.edit();
-                editor.putLong("key", item.getId());
-                Log.d("\"key\",item.getId()", "" + item.getId());
-                editor.apply();//Activity存在していないときはitemをSharedPreference保存
-            }
-        }
+        SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
+        nowPlayingId = data.getLong("key",0);
+        item = new Select().from(Item.class).where("Id = ?", nowPlayingId).executeSingle();
         Log.d("DEBUG TEST", "Create and Save Item Id at Service#getIntentContents: [" + item.getId() + "]");
         trackName_S = item.track_name;
         previewUrl_S = item.previewUrl;
         imageURI_S = item.artworkUrl100;
         artistName_S = item.artistName;
         albumName_S = item.collectionName;
-
-        SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = data.edit();
-        editor.putLong("key",item.getId());
-        Log.d("\"key\",item.getId()", "" + item.getId());
-        editor.apply();
     }
 
     //targetAPtとかSuppressWarning入れないと落ちる。

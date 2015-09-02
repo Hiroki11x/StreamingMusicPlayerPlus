@@ -3,6 +3,7 @@ package bmw.awa.awabmw;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -99,7 +100,6 @@ public class MainActivity extends Activity {
             imageView.setImageUrl(result.optString("artworkUrl100"));
             trackTextView.setText(result.optString("trackName"));
             artistTextView.setText(result.optString("artistName"));
-            Log.d("", "call_getView" + System.currentTimeMillis());//getViewが呼ばれていたのか確認
             return convertView;//ListViewの1要素のViewを返す
         }
     }
@@ -178,8 +178,6 @@ public class MainActivity extends Activity {
 
                         @Override
                         protected void onPostExecute(JSONObject jsonObject) {//doInBackground後の処理
-                            Log.d("", jsonObject.toString());
-
                             mAdapter.clear();//ListVierに突っ込むAdapterを一度クリア
 
                             JSONArray results = jsonObject.optJSONArray("results");
@@ -193,7 +191,6 @@ public class MainActivity extends Activity {
                                     //debugしたところ、mAdapter.add呼ばれたのちにgetViewが呼ばれている模様
                                 }
                             }
-                            Log.d("", "end mAdapter.add()" + System.currentTimeMillis());
                         }
                     }.execute(urlString);//AsyncTaskを実行
                 }
@@ -208,18 +205,6 @@ public class MainActivity extends Activity {
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
 
-            for(int i =0;i<3;i++){
-                JSONObject tempResult = mAdapter.getItem(i);//JSONObject取得
-                Item tempItem = new Item();
-                tempItem.track_name=tempResult.optString("trackName");
-                tempItem.previewUrl=tempResult.optString("previewUrl");
-                tempItem.artworkUrl100=tempResult.optString("artworkUrl100");
-                tempItem.artistName=tempResult.optString("artistName");
-                tempItem.collectionName=tempResult.optString("collectionName");
-                tempItem.registerTime=System.currentTimeMillis();
-                tempItem.save();
-            }
-
             //選択したアイテムのオブジェクトをDBに登録
             JSONObject result = mAdapter.getItem(position);//JSONObject取得
             Item item = new Item();
@@ -231,8 +216,27 @@ public class MainActivity extends Activity {
             item.registerTime=System.currentTimeMillis();
             item.save();
 
+            SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = data.edit();
+            editor.putLong("key", item.getId());//再生する曲をインクリメントで次へ
+            editor.apply();//Activity存在していないときはitemをSharedPreference保存
+
+            for(int i =0;i<10;i++){
+                JSONObject tempResult = mAdapter.getItem(i);//JSONObject取得
+                Item tempItem = new Item();
+                tempItem.track_name=tempResult.optString("trackName");
+                tempItem.previewUrl=tempResult.optString("previewUrl");
+                tempItem.artworkUrl100=tempResult.optString("artworkUrl100");
+                tempItem.artistName=tempResult.optString("artistName");
+                tempItem.collectionName=tempResult.optString("collectionName");
+                tempItem.registerTime=System.currentTimeMillis();
+                tempItem.save();
+            }
+
             Intent intent = new Intent(MainActivity.this, PlayerActivity.class);//PlayerActivityに明示的intent
             startActivity(intent);//intent開始
+
+
         }
     }
 
@@ -296,7 +300,6 @@ public class MainActivity extends Activity {
 
                 @Override
                 protected void onPostExecute(JSONObject jsonObject) {//doInBackground後の処理
-                    Log.d("", jsonObject.toString());
 
                     mAdapter.clear();//ListVierに突っ込むAdapterを一度クリア
 
@@ -305,10 +308,8 @@ public class MainActivity extends Activity {
                     if (results != null) {
                         for (int i = 0; i <results.length(); i++) {
                             mAdapter.add(results.optJSONObject(i));//JSONArrayのi番目の要素をAdapterに追加
-
                         }
                     }
-                    Log.d("", "end mAdapter.add()" + System.currentTimeMillis());
                 }
             }.execute(urlString);//AsyncTaskを実行
         }

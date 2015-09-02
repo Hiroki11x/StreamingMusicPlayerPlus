@@ -3,6 +3,7 @@ package bmw.awa.awabmw;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -111,6 +112,23 @@ public class StartActivity extends Activity {
             item.collectionName=result.optString("collectionName");
             item.registerTime=System.currentTimeMillis();
             item.save();
+
+            SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = data.edit();
+            editor.putLong("key", item.getId());//再生する曲をインクリメントで次へ
+            editor.apply();//Activity存在していないときはitemをSharedPreference保存
+
+            for(int i =0;i<10;i++){
+                JSONObject tempResult = adapter.getItem(i);//JSONObject取得
+                Item tempItem = new Item();
+                tempItem.track_name=tempResult.optString("trackName");
+                tempItem.previewUrl=tempResult.optString("previewUrl");
+                tempItem.artworkUrl100=tempResult.optString("artworkUrl100");
+                tempItem.artistName=tempResult.optString("artistName");
+                tempItem.collectionName=tempResult.optString("collectionName");
+                tempItem.registerTime=System.currentTimeMillis();
+                tempItem.save();
+            }
 
             Intent intent = new Intent(StartActivity.this, PlayerActivity.class);//PlayerActivityに明示的intent
             startActivity(intent);//intent開始

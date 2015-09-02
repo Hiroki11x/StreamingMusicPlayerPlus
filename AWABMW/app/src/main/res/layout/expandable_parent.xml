@@ -1,26 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="48dp">
+    android:layout_height="60dp"
+    android:background="@android:color/white">
 
-    <TextView
-        android:id="@+id/parent_title"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:gravity="center_vertical"
-        android:paddingStart="16dp"
-        android:text="aaa" />
+    <LinearLayout
+        android:id="@+id/parent_linear"
+        android:layout_width="match_parent"
+        android:layout_height="48dp">
+
+        <ImageView
+            android:id="@+id/parent_indicator"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:paddingBottom="4dp"
+            android:paddingEnd="4dp"
+            android:paddingStart="16dp"
+            android:paddingTop="4dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/jacket_dummy" />
+
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:padding="4dp">
+
+            <TextView
+                android:id="@+id/parent_year"
+                android:layout_width="match_parent"
+                android:layout_height="16dp"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:maxLines="1"
+                android:paddingEnd="12dp"
+                android:text="2014" />
+
+            <TextView
+                android:id="@+id/parent_title"
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                android:ellipsize="marquee"
+                android:gravity="center_vertical"
+                android:maxLines="1"
+                android:paddingEnd="16dp"
+                android:text="AAAAAAAAAAAAaaaaaaaaaaaaaaAAAAAAAaaa" />
+
+        </LinearLayout>
+
+
+        <ImageView
+            android:id="@+id/parent_aaa"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_above="@+id/parent_divider"
+            android:layout_alignParentRight="true"
+            android:paddingBottom="4dp"
+            android:paddingEnd="16dp"
+            android:paddingStart="4dp"
+            android:paddingTop="4dp"
+            android:scaleType="centerInside"
+            android:src="@android:drawable/ic_input_add" />
+    </LinearLayout>
+
 
     <ImageView
-        android:id="@+id/parent_indicator"
-        android:layout_width="60dp"
-        android:layout_height="48dp"
-        android:paddingBottom="4dp"
-        android:paddingEnd="16dp"
-        android:paddingStart="4dp"
-        android:paddingTop="4dp"
-        android:scaleType="fitXY"
-        android:src="@mipmap/ic_launcher" />
+        android:id="@+id/parent_divider"
+        android:layout_width="match_parent"
+        android:layout_height="12dp"
+        android:layout_below="@id/parent_linear"
+        android:background="@drawable/divider" />
 
-</LinearLayout>
+
+</RelativeLayout>

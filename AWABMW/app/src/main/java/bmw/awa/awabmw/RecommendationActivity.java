@@ -22,6 +22,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
@@ -42,11 +43,12 @@ import butterknife.ButterKnife;
 
 public class RecommendationActivity extends AppCompatActivity implements ViewPager.OnPageChangeListener {
 
-    @Bind(R.id.tabs) TabLayout mTabLayout;
-    @Bind(R.id.txt_title) TextView txtTitle;
-    @Bind(R.id.img_jacket) SmartImageView imgJacket;
-    @Bind(R.id.view_pager) ViewPager viewPager;
-    @Bind(R.id.toolbar) Toolbar toolbar;
+    @Bind(R.id.tabs)
+    TabLayout mTabLayout;
+    @Bind(R.id.view_pager)
+    ViewPager viewPager;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
 
     private SearchView mSearchView;
     private MaterialMenuIconToolbar menuIcon;
@@ -57,11 +59,22 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
     private DrawerAdapter mAdapter;
     private boolean isDrawerOpened;
 
-    private String[] factor = new String[]{"album", "artist", "tempo", "tempo2", "tempo3"};
-    private int[] iconId = {R.drawable.album, R.drawable.artist, R.drawable.tempo, R.drawable.tempo, R.drawable.tempo};
+    private String[] factor = new String[]{"tempo", "album", "artist"};
+    private int[][] iconId =
+            {
+                    {R.drawable.tempo_on, R.drawable.tempo_on},
+                    {R.drawable.album_off, R.drawable.album_on},
+                    {R.drawable.artist_off, R.drawable.artist_on}
+            };
 
     //unimplement
     String playingArtist, playingTrack;
+
+    public void checkNavigationBarVisible() {
+        if (ViewConfiguration.get(this).hasPermanentMenuKey()) {
+            findViewById(R.id.space).setVisibility(View.GONE);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +90,8 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
         toolbar.setTitle("");
 
         setSupportActionBar(toolbar);
+
+        toolbar.setBackgroundColor(Color.parseColor("#88000000"));
 
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -102,6 +117,8 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
                 return false;
             }
         });
+
+        checkNavigationBarVisible();
 
         /**
          * DrawerLayout
@@ -195,12 +212,7 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
             }
         };
 
-        imgJacket.setImageDrawable(getResources().getDrawable(R.drawable.jacket));
-        imgJacket.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-
-        mTabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
-        mTabLayout.addTab(mTabLayout.newTab());
-        mTabLayout.addTab(mTabLayout.newTab());
+        mTabLayout.setTabMode(TabLayout.MODE_FIXED);
         mTabLayout.addTab(mTabLayout.newTab());
         mTabLayout.addTab(mTabLayout.newTab());
         mTabLayout.addTab(mTabLayout.newTab());
@@ -209,18 +221,20 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
                 new TabLayout.OnTabSelectedListener() {
                     @Override
                     public void onTabSelected(TabLayout.Tab tab) {
-                        tab.setIcon(R.drawable.ic_launcher);
+                        tab.setIcon(getResources().getDrawable(iconId[tab.getPosition()][1]));
                     }
 
                     @Override
                     public void onTabUnselected(TabLayout.Tab tab) {
-                        int lp = 0;
+                        tab.setIcon(getResources().getDrawable(iconId[tab.getPosition()][0]));
 
-                        for (lp = 0; lp < mTabLayout.getTabCount(); lp++) {
-                            if (tab.getPosition() == lp) {
-                                tab.setIcon(getResources().getDrawable(iconId[lp]));
-                            }
-                        }
+//                        int lp = 0;
+//
+//                        for (lp = 0; lp < mTabLayout.getTabCount(); lp++) {
+//                            if (tab.getPosition() == lp) {
+//                                tab.setIcon(getResources().getDrawable(iconId[lp][1]));
+//                            }
+//                        }
                     }
 
                     @Override
@@ -231,9 +245,7 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
 
         );
 
-        mTabLayout.setSelectedTabIndicatorColor(Color.WHITE);
-
-        txtTitle.setSelected(true);
+        mTabLayout.setSelectedTabIndicatorColor(getResources().getColor(R.color.accent));
 
         FragmentPagerAdapter pagerAdapter = new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
@@ -243,7 +255,7 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
 
             @Override
             public int getCount() {
-                return 5;
+                return 3;
             }
 
             @Override
@@ -256,16 +268,11 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
         viewPager.addOnPageChangeListener(this);
 
         mTabLayout.setupWithViewPager(viewPager);
-
-        mTabLayout.getTabAt(0).setTag("artist").setIcon(R.drawable.artist);
-        mTabLayout.getTabAt(1).setTag("album").setIcon(R.drawable.album);
-        mTabLayout.getTabAt(2).setTag("tempo").setIcon(R.drawable.tempo);
-        mTabLayout.getTabAt(3).setTag("tempo2").setIcon(R.drawable.tempo);
-        mTabLayout.getTabAt(4).setTag("tempo3").setIcon(R.drawable.tempo);
-
-        int x = 0;
-        for (x = 0; x < mTabLayout.getTabCount(); x++) {
-            mTabLayout.getTabAt(x).setTag(factor[x]).setIcon(iconId[x]);
+        for (
+                int x = 0;
+                x < mTabLayout.getTabCount();
+                x++) {
+            mTabLayout.getTabAt(x).setTag(factor[x]).setIcon(iconId[x][0]);
         }
     }
 
@@ -367,29 +374,30 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
             elements = new ArrayList<>();
 
             try {
+                switch (page) {
+                    case 1:
+                    case 3:
+                        for (int i = 0; i < 20; i++) {
+                            Element x = (new Element("page" + page + ": " + i + "th element", Item.getRandom()));
+                            elements.add(x);
+                        }
 
-                if (page == 2) {
-                    Item ii = Item.getRandom();
-                    List<Item> list = Item.getByAlbum(ii.collectionName, ii.artistName);
-                    Element tmp = new Element(Item.getByAlbum(ii.collectionName, ii.artistName).get(0));
+                        break;
+                    case 2:
+                        Item ii = Item.getRandom();
+                        List<Item> list = Item.getByAlbum(ii.collectionName, ii.artistName);
+                        Element tmp = new Element(Item.getByAlbum(ii.collectionName, ii.artistName).get(0));
 
-                    for (Item i : list) {
-                        tmp.addChild(new Element(i));
-                    }
+                        for (Item i : list) {
+                            tmp.addChild(new Element(i));
+                        }
 
-                    elements.add(tmp);
-                } else {
-                    elements.add(new Element("page" + page + ": 1st element", Item.getRandom()));
-                    elements.add(new Element("page" + page + ": 2nd element", Item.getRandom()));
-                    elements.add(new Element("page" + page + ": 3rd element", Item.getRandom()));
-
-                    for (int i = 4; i < 20; i++) {
-                        Element x = (new Element("page" + page + ": " + i + "th element", Item.getRandom()));
-//                x.addChild(new Element("page" + page + ": " + i + "th child"));
-                        elements.add(x);
-                    }
+                        elements.add(tmp);
+                        break;
+                    default:
+                        break;
                 }
-            }catch(NullPointerException e){
+            } catch (NullPointerException e) {
                 e.printStackTrace();
                 Toast.makeText(getActivity(), "TrackDatabase is empty!!", Toast.LENGTH_SHORT).show();
 
@@ -398,7 +406,7 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
             }
 
             listExpandable.setGroupIndicator(getResources().getDrawable(android.R.color.transparent));
-            ExpandListAdapter expandListAdapter = new ExpandListAdapter(getActivity(), elements);
+            ExpandListAdapter expandListAdapter = new ExpandListAdapter(getActivity(), elements, page);
 
             listExpandable.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
                 @Override
@@ -407,6 +415,21 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
                     Item selected = new Item(e.getTrackName(), e.getpreviewUrl(), e.getArtworkUrl100(), e.getArtistName(), e.getCollectionName(), e.getRegisterTime());
                     selected.save();
                     startActivity(new Intent(getActivity(), PlayerActivity.class));
+                    return false;
+                }
+            });
+
+            listExpandable.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+                @Override
+                public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+                    if (!elements.get(groupPosition).isParent()) {
+
+
+                        Element e = elements.get(groupPosition);
+                        Item selected = new Item(e.getTrackName(), e.getpreviewUrl(), e.getArtworkUrl100(), e.getArtistName(), e.getCollectionName(), e.getRegisterTime());
+                        selected.save();
+                        startActivity(new Intent(getActivity(), PlayerActivity.class));
+                    }
                     return false;
                 }
             });

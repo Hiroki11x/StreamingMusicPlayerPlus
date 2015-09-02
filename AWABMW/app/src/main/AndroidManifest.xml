@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="bmw.awa.awabmw" >
+    package="bmw.awa.awabmw">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -9,28 +9,33 @@
         android:allowBackup="true"
         android:icon="@drawable/mplus_logo"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
         <meta-data
             android:name="AA_DB_NAME"
             android:value="Item.db" />
         <meta-data
             android:name="AA_DB_VERSION"
             android:value="1" />
+
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".PlayerActivity" />
+        <activity
+            android:name=".PlayerActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".RecommendationActivity"
-            android:theme="@style/MyTheme"
-            android:label="@string/title_activity_recommendation" >
-        </activity>
+            android:label="@string/title_activity_recommendation"
+            android:screenOrientation="portrait"
+            android:theme="@style/MyTheme" />
+
         <service android:name=".MusicService" />
     </application>
 

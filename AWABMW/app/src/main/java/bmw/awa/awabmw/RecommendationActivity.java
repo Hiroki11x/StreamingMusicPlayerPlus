@@ -1,7 +1,9 @@
 package bmw.awa.awabmw;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Color;
@@ -19,22 +21,21 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.transition.Transition;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewConfiguration;
+import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.widget.ExpandableListView;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.balysv.materialmenu.MaterialMenuDrawable;
 import com.balysv.materialmenu.extras.toolbar.MaterialMenuIconToolbar;
-import com.loopj.android.image.SmartImageView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,7 +44,6 @@ import java.util.List;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 
@@ -72,11 +72,108 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
 
     //unimplement
     String playingArtist, playingTrack;
+    private static final long ANIM_DURATION = 1000;
+    private View bgViewGroup;
 
     @Override
     protected void attachBaseContext(Context newBase) {
         super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
     }
+
+    private void setupLayout() {
+        bgViewGroup = findViewById(R.id.drawer_layout);
+    }
+
+    private void setupWindowAnimations() {
+        setupEnterAnimations();
+        setupExitAnimations();
+    }
+    @TargetApi(21)
+    private void setupEnterAnimations() {
+        Transition enterTransition = getWindow().getSharedElementEnterTransition();
+        enterTransition.addListener(new Transition.TransitionListener() {
+            @Override
+            public void onTransitionStart(Transition transition) {
+            }
+
+            @Override
+            public void onTransitionEnd(Transition transition) {
+                animateRevealShow(bgViewGroup);
+            }
+
+            @Override
+            public void onTransitionCancel(Transition transition) {
+            }
+
+            @Override
+            public void onTransitionPause(Transition transition) {
+            }
+
+            @Override
+            public void onTransitionResume(Transition transition) {
+            }
+        });
+    }
+    @TargetApi(21)
+    private void setupExitAnimations() {
+//        Transition sharedElementReturnTransition = getWindow().getSharedElementReturnTransition();
+//        sharedElementReturnTransition.setStartDelay(ANIM_DURATION);
+
+
+        Transition returnTransition = getWindow().getReturnTransition();
+        returnTransition.setDuration(ANIM_DURATION);
+        returnTransition.addListener(new Transition.TransitionListener() {
+            @Override
+            public void onTransitionStart(Transition transition) {
+                animateRevealShow(bgViewGroup);
+            }
+
+            @Override
+            public void onTransitionEnd(Transition transition) {}
+
+            @Override
+            public void onTransitionCancel(Transition transition) {}
+
+            @Override
+            public void onTransitionPause(Transition transition) {}
+
+            @Override
+            public void onTransitionResume(Transition transition) {}
+        });
+    }
+
+    @TargetApi(21)
+    private void animateRevealShow(View viewRoot) {
+        int cx = (viewRoot.getLeft() + viewRoot.getRight()) / 2;
+        int cy = (viewRoot.getTop() + viewRoot.getBottom()) / 2;
+        int finalRadius = Math.max(viewRoot.getWidth(), viewRoot.getHeight());
+
+        Animator anim = ViewAnimationUtils.createCircularReveal(viewRoot, cx, cy, 0, finalRadius);
+        viewRoot.setVisibility(View.VISIBLE);
+        anim.setDuration(ANIM_DURATION);
+        anim.start();
+    }
+
+    @TargetApi(21)
+    private void animateRevealHide(final View viewRoot) {
+        int cx = (viewRoot.getLeft() + viewRoot.getRight()) / 2;
+        int cy = (viewRoot.getTop() + viewRoot.getBottom()) / 2;
+        int initialRadius = viewRoot.getWidth();
+
+        Animator anim = ViewAnimationUtils.createCircularReveal(viewRoot, cx, cy, initialRadius, 0);
+        anim.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                viewRoot.setVisibility(View.INVISIBLE);
+            }
+        });
+        anim.setDuration(ANIM_DURATION);
+        anim.start();
+    }
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +181,8 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
         setContentView(R.layout.activity_recommendation);
 
         ButterKnife.bind(this);
+        setupLayout();
+        setupWindowAnimations();
 
         iconSelector = new Drawable[]
                 {
@@ -111,6 +210,8 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
                 return;
             }
         });
+
+
 
         /**
          * searchView

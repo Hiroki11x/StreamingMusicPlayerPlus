@@ -75,11 +75,10 @@
     <ImageView
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:id="@+id/imageView4"
+        android:id="@+id/imageSearch"
         android:background="@drawable/select_music"
         android:layout_gravity="right"
         android:layout_marginRight="16dp"
-        android:layout_marginTop="2dp"
-        android:onClick="intentSearch" />
+        android:layout_marginTop="2dp" />
 
 </FrameLayout>

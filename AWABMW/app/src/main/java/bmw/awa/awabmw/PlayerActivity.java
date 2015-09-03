@@ -1,6 +1,8 @@
 package bmw.awa.awabmw;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -12,11 +14,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.transition.Explode;
+import android.transition.Fade;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.widget.AdapterView;
@@ -63,6 +68,7 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
     private boolean isNotification=false;
     private static volatile long nowPlayingId;
     OnItemClickListener listener;
+    ImageView imageSearch;
 
 
     //-----------------このReceiverはActivity起動時にしか使えない------------------------
@@ -93,6 +99,8 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.player_activity);
+
+        MyAnimation.setupWindowAnimations(getWindow());
 
         mAdapter = new ListAdapter(this, R.layout.player_list_item);//list_itemは画像と文字があるリストを選択
         observallistView = (ObservableListView)findViewById(R.id.listView);
@@ -186,6 +194,21 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
         seekBar.setAlpha(0.9f);
         jacketImage.setImageUrl(imageURI);
         jacketImage.setScaleType(ImageView.ScaleType.FIT_CENTER);//画像を正方形で表示);
+
+        imageSearch = (ImageView)MiddleView.findViewById(R.id.imageSearch);
+        imageSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(PlayerActivity.this, RecommendationActivity.class);
+                View sharedView = observallistView;
+                String transitionName = "CircularTransition";
+
+                ActivityOptions transitionActivityOptions = MyAnimation.myMakeSceneTransitionAnimation(PlayerActivity.this, sharedView, transitionName);
+//                       / ActivityOptions.makeSceneTransitionAnimation(PlayerActivity.this, sharedView, transitionName);
+                startActivity(i, transitionActivityOptions.toBundle());
+            }
+        });
+
 
         nowPlaying = (TextView)MiddleView.findViewById(R.id.now_playing);
         nowPlaying.setTypeface(EasyFonts.robotoMedium(this));
@@ -538,10 +561,6 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
 
         }
     }
-    public  void intentSearch(View v){
-        Intent intent = new Intent(PlayerActivity.this,RecommendationActivity.class);
-        startActivity(intent);
-    }
 
     public void getItems() {//ListViewに再生待ちの楽曲を突っ込む
         mAdapter.clear();//ListVierに突っ込むAdapterを一度クリア
@@ -555,6 +574,36 @@ public class PlayerActivity extends Activity implements ObservableScrollViewCall
             mAdapter.add(innnerItem);//JSONArrayのi番目の要素をAdapterに追加
         }
     }
+
+    private void setViewWidth(View view, int x) {
+        ViewGroup.LayoutParams params = view.getLayoutParams();
+        params.width = x;
+        view.setLayoutParams(params);
+    }
+
+    @TargetApi(21)
+    public static class MyAnimation extends Activity{
+        public static void setupWindowAnimations(Window window) {
+            try{
+                Explode explode = new Explode();
+                explode.setDuration(2000);
+                window.setExitTransition(explode);
+
+                Fade fade = new Fade();
+                window.setReenterTransition(fade);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+        }
+
+        public static ActivityOptions myMakeSceneTransitionAnimation(Activity activity, View view , String str){
+            return ActivityOptions.makeSceneTransitionAnimation(activity ,view, str);
+        }
+
+    }
+
+
 }
 
 

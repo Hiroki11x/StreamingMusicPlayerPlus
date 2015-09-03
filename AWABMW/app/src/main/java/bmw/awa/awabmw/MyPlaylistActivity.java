@@ -1,6 +1,7 @@
 package bmw.awa.awabmw;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -68,9 +69,11 @@ public class MyPlaylistActivity extends ActionBarActivity {
             Item result = mAdapter.getItem(position);//Item
             SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = data.edit();
-            editor.putLong("key",result.getId());//再生する曲をインクリメントで次へ
+            editor.putLong("key", result.getId());//再生する曲をインクリメントで次へ
             editor.apply();//Activity存在していないときはitemをSharedPreference保存
 
+            Intent intent = new Intent(MyPlaylistActivity.this,PlayerActivity.class);
+            startActivity(intent);
         }
     }
 
@@ -110,7 +113,4 @@ public class MyPlaylistActivity extends ActionBarActivity {
             mAdapter.add(i);
         }
     }
-
-
-
 }

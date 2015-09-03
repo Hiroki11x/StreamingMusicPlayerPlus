@@ -3,6 +3,7 @@ package bmw.awa.awabmw;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Color;
@@ -35,6 +36,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.activeandroid.query.Select;
 import com.balysv.materialmenu.MaterialMenuDrawable;
 import com.balysv.materialmenu.extras.toolbar.MaterialMenuIconToolbar;
 import com.loopj.android.image.SmartImageView;
@@ -304,6 +306,12 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
         for (int x = 0; x < mTabLayout.getTabCount(); x++) {
             mTabLayout.getTabAt(x).setTag(factor[x]).setIcon(iconSelector[x]);
         }
+
+        SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
+        long nowPlayingId = data.getLong("key", 1);
+        Item item = new Select().from(Item.class).where("Id = ?", nowPlayingId).executeSingle();
+
+        ((SmartImageView)findViewById(R.id.bg_jacket)).setImageUrl(item.artworkUrl100);
     }
 
     @OnClick(R.id.tool_back)

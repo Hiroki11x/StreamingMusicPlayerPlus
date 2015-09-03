@@ -1,9 +1,15 @@
 package bmw.awa.awabmw;
 
+
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Context;
+
+import android.animation.ObjectAnimator;
+import android.content.Intent;
+import android.content.SharedPreferences;
+
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Color;
@@ -21,11 +27,16 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+
 import android.transition.Transition;
+
+import android.view.GestureDetector;
+
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
@@ -34,6 +45,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.activeandroid.query.Select;
 import com.balysv.materialmenu.MaterialMenuDrawable;
 import com.balysv.materialmenu.extras.toolbar.MaterialMenuIconToolbar;
 
@@ -58,14 +70,17 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
 
     private SearchView mSearchView;
     private MaterialMenuIconToolbar menuIcon;
-    private DrawerLayout mDrawerLayout;
-    private ActionBarDrawerToggle mDrawerToggle;
-    private RecyclerView mRecyclerView;
     private LinearLayoutManager mLayoutManager;
-    private DrawerAdapter mAdapter;
     private boolean isDrawerOpened;
 
-    @Bind(R.id.tool_back)ImageButton toolBack;
+    private DrawerLayout mDrawerLayout;
+    private RecyclerView mRecyclerView;
+    private DrawerAdapter mAdapter;
+    private ActionBarDrawerToggle mDrawerToggle;
+
+
+    @Bind(R.id.tool_back)
+    ImageButton toolBack;
 
     private String[] factor = new String[]{"tempo", "album", "artist"};
     private Drawable[] iconSelector;
@@ -292,7 +307,7 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
         int menuLength = drawerMenuList.length();
 
         // RecyclerView.Adapter に渡すデータ
-        ArrayList<HashMap<String, Object>> drawerMenuArr = new ArrayList<>();
+        final ArrayList<HashMap<String, Object>> drawerMenuArr = new ArrayList<>();
 
         for (int i = 0; i < menuLength; i++) {
             TypedArray itemArr = getResources().obtainTypedArray(drawerMenuList.getResourceId(i, 0));
@@ -317,6 +332,49 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
         mAdapter = new DrawerAdapter(drawerMenuArr);
 
         mRecyclerView.setAdapter(mAdapter);
+
+        // GestureDetectorを使って、onSingleTapUpを検知
+        final GestureDetector mGestureDetector = new GestureDetector(getApplicationContext(),
+                new GestureDetector.SimpleOnGestureListener() {
+                    @Override
+                    public boolean onSingleTapUp(MotionEvent e) {
+                        return true;
+                    }
+                });
+
+        mRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(RecyclerView view, MotionEvent e) {
+                if (mGestureDetector.onTouchEvent(e)) {
+
+                    // onSingleTapUpの時に、タッチしているViewを取得
+                    View childView = view.findChildViewUnder(e.getX(), e.getY());
+                    int potision = mRecyclerView.getChildPosition(childView);
+
+                    // タッチしているViewのデータを取得
+                    HashMap<String, Object> data = drawerMenuArr.get(potision);
+
+                    // Menu アイテムのみ
+                    if (data.get("text").toString().equals("My History")) {
+                        // ドロワー閉じる
+                        mDrawerLayout.closeDrawers();
+                        startActivity(new Intent(getApplicationContext(), MyPlaylistActivity.class));
+
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean b) {
+
+            }
+
+            @Override
+            public void onTouchEvent(RecyclerView rv, MotionEvent e) {
+            }
+        });
 
         menuIcon = new MaterialMenuIconToolbar(this, Color.WHITE, MaterialMenuDrawable.Stroke.THIN) {
             @Override
@@ -356,10 +414,16 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
         for (int x = 0; x < mTabLayout.getTabCount(); x++) {
             mTabLayout.getTabAt(x).setTag(factor[x]).setIcon(iconSelector[x]);
         }
+
+        SharedPreferences data = getSharedPreferences("DataSave", Context.MODE_PRIVATE);
+        long nowPlayingId = data.getLong("key", 1);
+        Item item = new Select().from(Item.class).where("Id = ?", nowPlayingId).executeSingle();
+
+        ((SmartImageView)findViewById(R.id.bg_jacket)).setImageUrl(item.artworkUrl100);
     }
 
     @OnClick(R.id.tool_back)
-    public void onClickBack(){
+    public void onClickBack() {
         finish();
     }
 
@@ -471,23 +535,37 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
                         break;
                     case 3:
                         ((TextView) view.findViewById(R.id.ftxt_description)).setText("他のアルバムの曲");
-                        for (int i = 0; i < 20; i++) {
-                            Element x = (new Element("page" + page + ": " + i + "th element", Item.getRandom()));
-                            elements.add(x);
+//                        for (int i = 0; i < 20; i++) {
+//                            Element x = (new Element("page" + page + ": " + i + "th element", Item.getRandom()));
+//                            elements.add(x);
+//                        }
+                        for(int z = 0; z < 10; z++) {
+                            Item ii = Item.getRandom();
+                            List<Item> list = Item.getByAlbum(ii.collectionName, ii.artistName);
+                            Element tmp = new Element(Item.getByAlbum(ii.collectionName, ii.artistName).get(0));
+
+                            for (Item i : list) {
+                                tmp.addChild(new Element(i));
+                            }
+
+                            elements.add(tmp);
                         }
+
 
                         break;
                     case 2:
                         ((TextView) view.findViewById(R.id.ftxt_description)).setText("似たアーティストの曲");
-                        Item ii = Item.getRandom();
-                        List<Item> list = Item.getByAlbum(ii.collectionName, ii.artistName);
-                        Element tmp = new Element(Item.getByAlbum(ii.collectionName, ii.artistName).get(0));
+                        for(int z = 0; z < 10; z++) {
+                            Item ii = Item.getRandom();
+                            List<Item> list = Item.getByAlbum(ii.collectionName, ii.artistName);
+                            Element tmp = new Element(Item.getByAlbum(ii.collectionName, ii.artistName).get(0));
 
-                        for (Item i : list) {
-                            tmp.addChild(new Element(i));
+                            for (Item i : list) {
+                                tmp.addChild(new Element(i));
+                            }
+
+                            elements.add(tmp);
                         }
-
-                        elements.add(tmp);
                         break;
                     default:
                         break;
@@ -517,12 +595,16 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
             listExpandable.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
                 @Override
                 public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
-                    if (!elements.get(groupPosition).isParent()) {
-//                        Element e = elements.get(groupPosition);
-//                        Item selected = new Item(e.getTrackName(), e.getpreviewUrl(), e.getArtworkUrl100(), e.getArtistName(), e.getCollectionName(), e.getRegisterTime());
-//                        selected.save();
-//                        startActivity(new Intent(getActivity(), PlayerActivity.class));
-                    }
+
+
+//                    if (!elements.get(groupPosition).isParent()) {
+////                        Element e = elements.get(groupPosition);
+////                        Item selected = new Item(e.getTrackName(), e.getpreviewUrl(), e.getArtworkUrl100(), e.getArtistName(), e.getCollectionName(), e.getRegisterTime());
+////                        selected.save();
+////                        startActivity(new Intent(getActivity(), PlayerActivity.class));
+//                    } else {
+////                        animateRotation();
+//                    }
                     return false;
                 }
             });

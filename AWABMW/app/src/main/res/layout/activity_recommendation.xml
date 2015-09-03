@@ -10,6 +10,7 @@
         android:layout_height="match_parent">
 
         <com.loopj.android.image.SmartImageView
+            android:id="@+id/bg_jacket"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="fitStart"
@@ -31,8 +32,9 @@
         <LinearLayout
             android:id="@+id/linear_tool"
             android:background="@color/black_50"
+            android:paddingTop="24dp"
             android:layout_width="match_parent"
-            android:layout_height="56dp">
+            android:layout_height="80dp">
             <ImageButton
                 android:id="@+id/tool_back"
                 android:layout_width="56dp"

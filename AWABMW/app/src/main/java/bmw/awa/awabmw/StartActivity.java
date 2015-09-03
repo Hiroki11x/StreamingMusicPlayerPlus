@@ -4,12 +4,19 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.TypedArray;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -34,6 +41,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by hirokinaganuma on 15/09/02.
@@ -42,6 +51,13 @@ public class StartActivity extends Activity {
 
 
     private GridAdapter adapter;
+
+    private DrawerLayout mDrawerLayout;
+    private RecyclerView mRecyclerView;
+    private DrawerAdapter mAdapter;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private LinearLayoutManager mLayoutManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +85,135 @@ public class StartActivity extends Activity {
         editText.setTypeface(EasyFonts.robotoMedium(this));
         editText.setOnKeyListener(new OnKeyListener());//文字入力のEditTextにリスナ追加
 
+        /**
+         * DrawerLayout
+         */
+        // ドロワーの開け閉めをActionBarDrawerToggleで監視
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.app_name, R.string.app_name);
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        // ドロワー開くボタン(三本線)を表示
+        mDrawerToggle.setDrawerIndicatorEnabled(true);
+
+//        mDrawerToggle.setHomeAsUpIndicator(menuIcon.setState(MaterialMenuDrawable.IconState.ARROW));
+
+//        mDrawerLayout.setDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+//            @Override
+//            public void onDrawerSlide(View drawerView, float slideOffset) {
+//                menuIcon.setTransformationOffset(
+//                        MaterialMenuDrawable.AnimationState.BURGER_ARROW,
+//                        isDrawerOpened ? 2 - slideOffset : slideOffset
+//                );
+//            }
+//
+//            @Override
+//            public void onDrawerOpened(View drawerView) {
+////                super.onDrawerOpened(drawerView);
+//                isDrawerOpened = true;
+//            }
+//
+//            @Override
+//            public void onDrawerClosed(View drawerView) {
+////                super.onDrawerClosed(drawerView);
+//                isDrawerOpened = false;
+//            }
+//
+//            @Override
+//            public void onDrawerStateChanged(int newState) {
+////                super.onDrawerStateChanged(newState);
+//                if (newState == DrawerLayout.STATE_IDLE) {
+//                    if (isDrawerOpened) menuIcon.setState(MaterialMenuDrawable.IconState.ARROW);
+//                    else menuIcon.setState(MaterialMenuDrawable.IconState.ARROW);
+//                }
+//            }
+//        });
+
+        /**
+         * RecyclerView
+         */
+        mRecyclerView = (RecyclerView) findViewById(R.id.drawer_view);
+
+        // RecyclerView内のItemサイズが固定の場合に設定すると、パフォーマンス最適化
+        mRecyclerView.setHasFixedSize(true);
+
+        // レイアウトの選択
+        mLayoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+
+        // XML
+        TypedArray drawerMenuList = getResources().obtainTypedArray(R.array.drawer_menu_list);
+        int menuLength = drawerMenuList.length();
+
+        // RecyclerView.Adapter に渡すデータ
+        final ArrayList<HashMap<String, Object>> drawerMenuArr = new ArrayList<>();
+
+        for (int i = 0; i < menuLength; i++) {
+            TypedArray itemArr = getResources().obtainTypedArray(drawerMenuList.getResourceId(i, 0));
+            int itemLength = itemArr.length();
+            HashMap<String, Object> content = new HashMap<>();
+            drawerMenuArr.add(content);
+            for (int j = 0; j < itemLength; j++) {
+                TypedArray contentArr = getResources().obtainTypedArray(itemArr.getResourceId(j, 0));
+
+                // key-value
+                if (contentArr.getString(0).contains("icon")) {
+                    content.put(contentArr.getString(0), contentArr.getDrawable(1));
+                } else {
+                    content.put(contentArr.getString(0), contentArr.getString(1));
+                }
+                contentArr.recycle();
+            }
+            itemArr.recycle();
+        }
+
+        // XMLを読込んで表示する
+        mAdapter = new DrawerAdapter(drawerMenuArr);
+
+        mRecyclerView.setAdapter(mAdapter);
+
+        // GestureDetectorを使って、onSingleTapUpを検知
+        final GestureDetector mGestureDetector = new GestureDetector(getApplicationContext(),
+                new GestureDetector.SimpleOnGestureListener() {
+                    @Override
+                    public boolean onSingleTapUp(MotionEvent e) {
+                        return true;
+                    }
+                });
+
+        mRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(RecyclerView view, MotionEvent e) {
+                if (mGestureDetector.onTouchEvent(e)) {
+
+                    // onSingleTapUpの時に、タッチしているViewを取得
+                    View childView = view.findChildViewUnder(e.getX(), e.getY());
+                    int potision = mRecyclerView.getChildPosition(childView);
+
+                    // タッチしているViewのデータを取得
+                    HashMap<String, Object> data = drawerMenuArr.get(potision);
+
+                    // Menu アイテムのみ
+                    if (data.get("text").toString().equals("My History")) {
+                        // ドロワー閉じる
+                        mDrawerLayout.closeDrawers();
+                        startActivity(new Intent(getApplicationContext(), MyPlaylistActivity.class));
+
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean b) {
+
+            }
+
+            @Override
+            public void onTouchEvent(RecyclerView rv, MotionEvent e) {
+            }
+        });
     }
 
 

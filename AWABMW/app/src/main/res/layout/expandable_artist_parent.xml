@@ -25,7 +25,7 @@
         android:textSize="16sp" />
 
     <ImageView
-        android:id="@+id/artist_expand"
+        android:id="@+id/expand"
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_marginEnd="16dp"

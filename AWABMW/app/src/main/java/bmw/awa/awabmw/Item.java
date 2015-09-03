@@ -58,7 +58,7 @@ public class Item extends Model {
     public static List<Item> getByAlbum(String album, String artist) {
         List<Item> tmp = new Select()
                 .from(Item.class)
-//                .where("artistName = ?", artist)
+                .where("artistName = ?", artist)
                 .where("collectionName = ?", album)
                 .orderBy("track_name ASC")
                 .execute();

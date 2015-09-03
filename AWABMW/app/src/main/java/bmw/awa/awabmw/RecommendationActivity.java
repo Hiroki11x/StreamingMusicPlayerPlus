@@ -59,12 +59,14 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
 
     private SearchView mSearchView;
     private MaterialMenuIconToolbar menuIcon;
-    private DrawerLayout mDrawerLayout;
-    private ActionBarDrawerToggle mDrawerToggle;
-    private RecyclerView mRecyclerView;
     private LinearLayoutManager mLayoutManager;
-    private DrawerAdapter mAdapter;
     private boolean isDrawerOpened;
+
+    private DrawerLayout mDrawerLayout;
+    private RecyclerView mRecyclerView;
+    private DrawerAdapter mAdapter;
+    private ActionBarDrawerToggle mDrawerToggle;
+
 
     @Bind(R.id.tool_back)
     ImageButton toolBack;

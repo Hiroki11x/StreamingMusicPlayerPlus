@@ -21,7 +21,7 @@
     <!-- 表示内容・設定 content -->
     <array name="header_image">
         <item name="key">icon</item>
-        <item name="value">@drawable/dummy_header</item>
+        <item name="value">@drawable/menu_header</item>
     </array>
     <array name="category_text_1">
         <item name="key">text</item>
@@ -37,7 +37,7 @@
     </array>
     <array name="menu_text_1">
         <item name="key">text</item>
-        <item name="value">PlayingList</item>
+        <item name="value">NowPlaying</item>
     </array>
     <array name="menu_text_2">
         <item name="key">text</item>
@@ -45,7 +45,7 @@
     </array>
     <array name="menu_text_3">
         <item name="key">text</item>
-        <item name="value">My Compilations</item>
+        <item name="value">My History</item>
     </array>
     <array name="menu_text_4">
         <item name="key">text</item>
@@ -59,27 +59,27 @@
     <!-- アイテム内の構造 item -->
     <array name="menu1">
         <item>@array/type_menu</item>
-        <item>@array/menu_icon</item>
+        <!--<item>@array/menu_icon</item>-->
         <item>@array/menu_text_1</item>
     </array>
     <array name="menu2">
         <item>@array/type_menu</item>
-        <item>@array/menu_icon</item>
+        <!--<item>@array/menu_icon</item>-->
         <item>@array/menu_text_2</item>
     </array>
     <array name="menu3">
         <item>@array/type_menu</item>
-        <item>@array/menu_icon</item>
+        <!--<item>@array/menu_icon</item>-->
         <item>@array/menu_text_3</item>
     </array>
     <array name="menu4">
         <item>@array/type_menu</item>
-        <item>@array/menu_icon</item>
+        <!--<item>@array/menu_icon</item>-->
         <item>@array/menu_text_4</item>
     </array>
     <array name="menu5">
         <item>@array/type_menu</item>
-        <item>@array/menu_icon</item>
+        <!--<item>@array/menu_icon</item>-->
         <item>@array/menu_text_5</item>
     </array>
     <array name="category1">

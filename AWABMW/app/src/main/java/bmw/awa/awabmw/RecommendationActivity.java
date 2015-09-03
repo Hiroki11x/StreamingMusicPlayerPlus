@@ -20,10 +20,12 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
@@ -195,7 +197,7 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
         int menuLength = drawerMenuList.length();
 
         // RecyclerView.Adapter に渡すデータ
-        ArrayList<HashMap<String, Object>> drawerMenuArr = new ArrayList<>();
+        final ArrayList<HashMap<String, Object>> drawerMenuArr = new ArrayList<>();
 
         for (int i = 0; i < menuLength; i++) {
             TypedArray itemArr = getResources().obtainTypedArray(drawerMenuList.getResourceId(i, 0));
@@ -220,6 +222,49 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
         mAdapter = new DrawerAdapter(drawerMenuArr);
 
         mRecyclerView.setAdapter(mAdapter);
+
+        // GestureDetectorを使って、onSingleTapUpを検知
+        final GestureDetector mGestureDetector = new GestureDetector(getApplicationContext(),
+                new GestureDetector.SimpleOnGestureListener() {
+                    @Override
+                    public boolean onSingleTapUp(MotionEvent e) {
+                        return true;
+                    }
+                });
+
+        mRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(RecyclerView view, MotionEvent e) {
+                if (mGestureDetector.onTouchEvent(e)) {
+
+                    // onSingleTapUpの時に、タッチしているViewを取得
+                    View childView = view.findChildViewUnder(e.getX(), e.getY());
+                    int potision = mRecyclerView.getChildPosition(childView);
+
+                    // タッチしているViewのデータを取得
+                    HashMap<String, Object> data = drawerMenuArr.get(potision);
+
+                    // Menu アイテムのみ
+                    if (data.get("text").toString().equals("My History")) {
+                        // ドロワー閉じる
+                        mDrawerLayout.closeDrawers();
+                        startActivity(new Intent(getApplicationContext(), MyPlaylistActivity.class));
+
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean b) {
+
+            }
+
+            @Override
+            public void onTouchEvent(RecyclerView rv, MotionEvent e) {
+            }
+        });
 
         menuIcon = new MaterialMenuIconToolbar(this, Color.WHITE, MaterialMenuDrawable.Stroke.THIN) {
             @Override

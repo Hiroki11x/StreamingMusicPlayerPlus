@@ -1,5 +1,6 @@
 package bmw.awa.awabmw;
 
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -65,7 +66,8 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
     private DrawerAdapter mAdapter;
     private boolean isDrawerOpened;
 
-    @Bind(R.id.tool_back)ImageButton toolBack;
+    @Bind(R.id.tool_back)
+    ImageButton toolBack;
 
     private String[] factor = new String[]{"tempo", "album", "artist"};
     private Drawable[] iconSelector;
@@ -258,7 +260,7 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
     }
 
     @OnClick(R.id.tool_back)
-    public void onClickBack(){
+    public void onClickBack() {
         finish();
     }
 
@@ -370,23 +372,37 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
                         break;
                     case 3:
                         ((TextView) view.findViewById(R.id.ftxt_description)).setText("他のアルバムの曲");
-                        for (int i = 0; i < 20; i++) {
-                            Element x = (new Element("page" + page + ": " + i + "th element", Item.getRandom()));
-                            elements.add(x);
+//                        for (int i = 0; i < 20; i++) {
+//                            Element x = (new Element("page" + page + ": " + i + "th element", Item.getRandom()));
+//                            elements.add(x);
+//                        }
+                        for(int z = 0; z < 10; z++) {
+                            Item ii = Item.getRandom();
+                            List<Item> list = Item.getByAlbum(ii.collectionName, ii.artistName);
+                            Element tmp = new Element(Item.getByAlbum(ii.collectionName, ii.artistName).get(0));
+
+                            for (Item i : list) {
+                                tmp.addChild(new Element(i));
+                            }
+
+                            elements.add(tmp);
                         }
+
 
                         break;
                     case 2:
                         ((TextView) view.findViewById(R.id.ftxt_description)).setText("似たアーティストの曲");
-                        Item ii = Item.getRandom();
-                        List<Item> list = Item.getByAlbum(ii.collectionName, ii.artistName);
-                        Element tmp = new Element(Item.getByAlbum(ii.collectionName, ii.artistName).get(0));
+                        for(int z = 0; z < 10; z++) {
+                            Item ii = Item.getRandom();
+                            List<Item> list = Item.getByAlbum(ii.collectionName, ii.artistName);
+                            Element tmp = new Element(Item.getByAlbum(ii.collectionName, ii.artistName).get(0));
 
-                        for (Item i : list) {
-                            tmp.addChild(new Element(i));
+                            for (Item i : list) {
+                                tmp.addChild(new Element(i));
+                            }
+
+                            elements.add(tmp);
                         }
-
-                        elements.add(tmp);
                         break;
                     default:
                         break;
@@ -416,12 +432,16 @@ public class RecommendationActivity extends AppCompatActivity implements ViewPag
             listExpandable.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
                 @Override
                 public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
-                    if (!elements.get(groupPosition).isParent()) {
-//                        Element e = elements.get(groupPosition);
-//                        Item selected = new Item(e.getTrackName(), e.getpreviewUrl(), e.getArtworkUrl100(), e.getArtistName(), e.getCollectionName(), e.getRegisterTime());
-//                        selected.save();
-//                        startActivity(new Intent(getActivity(), PlayerActivity.class));
-                    }
+
+
+//                    if (!elements.get(groupPosition).isParent()) {
+////                        Element e = elements.get(groupPosition);
+////                        Item selected = new Item(e.getTrackName(), e.getpreviewUrl(), e.getArtworkUrl100(), e.getArtistName(), e.getCollectionName(), e.getRegisterTime());
+////                        selected.save();
+////                        startActivity(new Intent(getActivity(), PlayerActivity.class));
+//                    } else {
+////                        animateRotation();
+//                    }
                     return false;
                 }
             });

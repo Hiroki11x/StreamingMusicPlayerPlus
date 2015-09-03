@@ -1,5 +1,6 @@
 package bmw.awa.awabmw;
 
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +13,7 @@ import com.loopj.android.image.SmartImageView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by satsukies on 15/08/31.
@@ -47,49 +49,39 @@ public class ExpandListAdapter extends BaseExpandableListAdapter {
         /**
          * 子アイテムの描画
          */
-        TextView textView;
-        TextView textView2;
-        SmartImageView smartImageView;
         switch (page) {
             case 1:
                 view = inflater.inflate(R.layout.expandable_child, null);
-                textView = (TextView) view.findViewById(R.id.child_title);
-                textView.setText(element.getTrackName());
-                smartImageView = (SmartImageView) view.findViewById(R.id.child_jacket);
-                smartImageView.setImageUrl(element.getArtworkUrl100());
+                ((TextView) view.findViewById(R.id.child_title)).setText(element.getTrackName());
+                ((SmartImageView) view.findViewById(R.id.child_jacket)).setImageUrl(element.getArtworkUrl100());
+                ((TextView) view.findViewById(R.id.child_2nd)).setText(element.getArtistName());
                 break;
             case 2:
                 view = inflater.inflate(R.layout.expandable_artist_child, null);
-                textView = (TextView) view.findViewById(R.id.child_title);
-                textView.setText(element.getTrackName());
-                textView2 = (TextView)view.findViewById(R.id.number);
-                textView2.setText("" + arg1);
+                ((TextView) view.findViewById(R.id.child_title)).setText(element.getTrackName());
+                ((TextView) view.findViewById(R.id.child_2nd)).setText(returnTrackTime());
+                ((TextView) view.findViewById(R.id.number)).setText("" + arg1);
                 break;
             case 3:
                 view = inflater.inflate(R.layout.expandable_album_child, null);
-                textView = (TextView) view.findViewById(R.id.child_title);
-                textView.setText(element.getTrackName());
-                smartImageView = (SmartImageView) view.findViewById(R.id.child_jacket);
-                smartImageView.setImageUrl(element.getArtworkUrl100());
-                textView2 = (TextView)view.findViewById(R.id.number);
-                textView2.setText("" + arg1);
+                ((TextView) view.findViewById(R.id.child_title)).setText(element.getTrackName());
+                ((TextView) view.findViewById(R.id.child_2nd)).setText(returnTrackTime());
+                ((TextView) view.findViewById(R.id.number)).setText("" + arg1);
                 break;
             default:
                 view = inflater.inflate(R.layout.expandable_child, null);
-                textView = (TextView) view.findViewById(R.id.child_title);
-                textView.setText(element.getTrackName());
-                smartImageView = (SmartImageView) view.findViewById(R.id.child_jacket);
-                smartImageView.setImageUrl(element.getArtworkUrl100());
+                ((TextView) view.findViewById(R.id.child_title)).setText(element.getTrackName());
+                ((SmartImageView) view.findViewById(R.id.child_jacket)).setImageUrl(element.getArtworkUrl100());
                 break;
         }
 
-        ((ImageView)view.findViewById(R.id.child_add)).setOnClickListener(new View.OnClickListener() {
+        ((ImageView) view.findViewById(R.id.child_add)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Element e = ((elements.get(arg0)).getChildren()).get(arg1);
                 Item selected = new Item(e.getTrackName(), e.getpreviewUrl(), e.getArtworkUrl100(), e.getArtistName(), e.getCollectionName(), e.getRegisterTime());
                 selected.save();
-                ((ImageView)v).setBackground(activity.getResources().getDrawable(R.drawable.add_list));
+                ((ImageView) v).setBackground(activity.getResources().getDrawable(R.drawable.add_list));
             }
         });
 
@@ -129,12 +121,14 @@ public class ExpandListAdapter extends BaseExpandableListAdapter {
                     case 2:
                         //artist
                         view = inflater.inflate(R.layout.expandable_artist_parent, null);
-                        ((SmartImageView)view.findViewById(R.id.parent_jacket)).setImageUrl(element.getArtworkUrl100());
-                        ((TextView)view.findViewById(R.id.parent_title)).setText(element.getArtistName());
+                        ((SmartImageView) view.findViewById(R.id.parent_jacket)).setImageUrl(element.getArtworkUrl100());
+                        ((TextView) view.findViewById(R.id.parent_title)).setText(element.getArtistName());
                         break;
                     case 3:
                         //album
                         view = inflater.inflate(R.layout.expandable_album_parent, null);
+                        ((SmartImageView) view.findViewById(R.id.parent_jacket)).setImageUrl(element.getArtworkUrl100());
+                        ((TextView) view.findViewById(R.id.parent_title)).setText(element.getCollectionName());
                         break;
                     default:
                         view = inflater.inflate(R.layout.expandable_parent, null);
@@ -146,57 +140,82 @@ public class ExpandListAdapter extends BaseExpandableListAdapter {
 //            indicator.setImageResource(isExpanded ? R.drawable.ic_launcher : android.R.drawable.ic_media_play);
 
                 if (isExpanded) {
-                    view.findViewById(R.id.artist_expand).setRotation(0);
+                    view.findViewById(R.id.expand).setRotation(0);
                 } else {
-                    view.findViewById(R.id.artist_expand).setRotation(270);
+                    view.findViewById(R.id.expand).setRotation(270);
                 }
             } else {
-                /**
-                 * 子アイテムの描画
-                 */
-                TextView textView;
-                TextView textView2;
-                SmartImageView smartImageView;
+//                /**
+//                 * 子アイテムの描画
+//                 */
+//                TextView textView;
+//                TextView textView2;
+//                SmartImageView smartImageView;
+//                switch (page) {
+//                    case 1:
+//                        view = inflater.inflate(R.layout.expandable_child, null);
+//                        textView = (TextView) view.findViewById(R.id.child_title);
+//                        textView.setText(element.getTrackName());
+//                        smartImageView = (SmartImageView) view.findViewById(R.id.child_jacket);
+//                        smartImageView.setImageUrl(element.getArtworkUrl100());
+//                        break;
+//                    case 2:
+//                        view = inflater.inflate(R.layout.expandable_artist_child, null);
+//                        textView = (TextView) view.findViewById(R.id.child_title);
+//                        textView.setText(element.getTrackName());
+//                        textView2 = (TextView) view.findViewById(R.id.number);
+//                        textView2.setText("0");
+//                        break;
+//                    case 3:
+//                        view = inflater.inflate(R.layout.expandable_album_child, null);
+//                        textView = (TextView) view.findViewById(R.id.child_title);
+//                        textView.setText(element.getTrackName());
+////                        smartImageView = (SmartImageView) view.findViewById(R.id.child_jacket);
+////                        smartImageView.setImageUrl(element.getArtworkUrl100());
+//                        textView2 = (TextView) view.findViewById(R.id.number);
+//                        textView2.setText("0");
+//                        break;
+//                    default:
+//                        view = inflater.inflate(R.layout.expandable_child, null);
+//                        textView = (TextView) view.findViewById(R.id.child_title);
+//                        textView.setText(element.getTrackName());
+//                        smartImageView = (SmartImageView) view.findViewById(R.id.child_jacket);
+//                        smartImageView.setImageUrl(element.getArtworkUrl100());
+//                        break;
+//                }
                 switch (page) {
                     case 1:
                         view = inflater.inflate(R.layout.expandable_child, null);
-                        textView = (TextView) view.findViewById(R.id.child_title);
-                        textView.setText(element.getTrackName());
-                        smartImageView = (SmartImageView) view.findViewById(R.id.child_jacket);
-                        smartImageView.setImageUrl(element.getArtworkUrl100());
+                        ((TextView) view.findViewById(R.id.child_title)).setText(element.getTrackName());
+                        ((SmartImageView) view.findViewById(R.id.child_jacket)).setImageUrl(element.getArtworkUrl100());
+                        ((TextView) view.findViewById(R.id.child_2nd)).setText(element.getArtistName());
                         break;
                     case 2:
                         view = inflater.inflate(R.layout.expandable_artist_child, null);
-                        textView = (TextView) view.findViewById(R.id.child_title);
-                        textView.setText(element.getTrackName());
-                        textView2 = (TextView)view.findViewById(R.id.number);
-                        textView2.setText("0");
+                        ((TextView) view.findViewById(R.id.child_title)).setText(element.getTrackName());
+                        ((TextView) view.findViewById(R.id.child_2nd)).setText(returnTrackTime());
+                        ((TextView) view.findViewById(R.id.number)).setText("" + arg0);
                         break;
                     case 3:
                         view = inflater.inflate(R.layout.expandable_album_child, null);
-                        textView = (TextView) view.findViewById(R.id.child_title);
-                        textView.setText(element.getTrackName());
-//                        smartImageView = (SmartImageView) view.findViewById(R.id.child_jacket);
-//                        smartImageView.setImageUrl(element.getArtworkUrl100());
-                        textView2 = (TextView)view.findViewById(R.id.number);
-                        textView2.setText("0");
+                        ((TextView) view.findViewById(R.id.child_title)).setText(element.getTrackName());
+                        ((TextView) view.findViewById(R.id.child_2nd)).setText(returnTrackTime());
+                        ((TextView) view.findViewById(R.id.number)).setText("" + arg0);
                         break;
                     default:
                         view = inflater.inflate(R.layout.expandable_child, null);
-                        textView = (TextView) view.findViewById(R.id.child_title);
-                        textView.setText(element.getTrackName());
-                        smartImageView = (SmartImageView) view.findViewById(R.id.child_jacket);
-                        smartImageView.setImageUrl(element.getArtworkUrl100());
+                        ((TextView) view.findViewById(R.id.child_title)).setText(element.getTrackName());
+                        ((SmartImageView) view.findViewById(R.id.child_jacket)).setImageUrl(element.getArtworkUrl100());
                         break;
                 }
 
-                ((ImageView)view.findViewById(R.id.child_add)).setOnClickListener(new View.OnClickListener() {
+                ((ImageView) view.findViewById(R.id.child_add)).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         Element e = elements.get(arg0);
                         Item selected = new Item(e.getTrackName(), e.getpreviewUrl(), e.getArtworkUrl100(), e.getArtistName(), e.getCollectionName(), e.getRegisterTime());
                         selected.save();
-                        ((ImageView)v).setBackground(activity.getResources().getDrawable(R.drawable.add_list));
+                        ((ImageView) v).setBackground(activity.getResources().getDrawable(R.drawable.add_list));
                     }
                 });
             }
@@ -223,5 +242,14 @@ public class ExpandListAdapter extends BaseExpandableListAdapter {
     @Override
     public void onGroupExpanded(int groupPosition) {
         super.onGroupExpanded(groupPosition);
+    }
+
+    public String returnTrackTime() {
+        int minutes = (int) (Math.random() * 7);
+        int seconds = (int) (Math.random() * 60);
+        String m = String.format(Locale.JAPAN, "%02d", minutes);
+        String s = String.format(Locale.JAPAN, "%02d", seconds);
+        String temp = m + ":" + s; // maxLengthにセット
+        return temp;
     }
 }

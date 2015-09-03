@@ -32,6 +32,7 @@
             android:textSize="18sp" />
 
         <TextView
+            android:id="@+id/child_2nd"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:ellipsize="end"

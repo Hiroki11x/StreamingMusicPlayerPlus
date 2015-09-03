@@ -14,6 +14,7 @@
         android:src="@drawable/jacket_dummy" />
 
     <TextView
+        android:id="@+id/parent_title"
         android:layout_width="0dp"
         android:layout_height="72dp"
         android:layout_weight="1"
@@ -24,21 +25,13 @@
         android:textSize="16sp" />
 
     <ImageView
-        android:id="@+id/artist_expand"
+        android:id="@+id/expand"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:layout_gravity="center_vertical"
-        android:scaleType="centerInside"
-        android:src="@drawable/expand_more" />
-
-    <ImageView
-        android:id="@+id/artist_add"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
         android:layout_marginEnd="16dp"
         android:layout_gravity="center_vertical"
         android:scaleType="centerInside"
-        android:src="@drawable/add" />
+        android:src="@drawable/expand_more" />
 
 </LinearLayout>
 
